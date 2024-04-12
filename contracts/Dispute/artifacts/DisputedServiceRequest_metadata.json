@@ -1,0 +1,283 @@
+{
+	"compiler": {
+		"version": "0.8.24+commit.e11b9ed9"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "from",
+						"type": "address"
+					},
+					{
+						"components": [
+							{
+								"internalType": "string",
+								"name": "serviceRequestId",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "description",
+								"type": "string"
+							},
+							{
+								"internalType": "address",
+								"name": "shipperAddr",
+								"type": "address"
+							},
+							{
+								"internalType": "address",
+								"name": "receiverAddr",
+								"type": "address"
+							},
+							{
+								"internalType": "int256",
+								"name": "originLatitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "originLongitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "destinationLatitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "destinationLongitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "string",
+								"name": "originLink",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "destinationLink",
+								"type": "string"
+							},
+							{
+								"internalType": "uint256",
+								"name": "cargoInsurableValue",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "serviceFee",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "serviceFeeByBidder",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "requestedPickupTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "requestedDeliveryTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "auctionTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "address",
+								"name": "driverAssigned",
+								"type": "address"
+							},
+							{
+								"internalType": "enum Types.Status",
+								"name": "status",
+								"type": "uint8"
+							}
+						],
+						"indexed": false,
+						"internalType": "struct Types.ServiceRequestInfo",
+						"name": "serviceRequestInfo",
+						"type": "tuple"
+					}
+				],
+				"name": "OnlyDisputedSRCanBeSaved",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "from",
+						"type": "address"
+					},
+					{
+						"components": [
+							{
+								"internalType": "string",
+								"name": "serviceRequestId",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "description",
+								"type": "string"
+							},
+							{
+								"internalType": "address",
+								"name": "shipperAddr",
+								"type": "address"
+							},
+							{
+								"internalType": "address",
+								"name": "receiverAddr",
+								"type": "address"
+							},
+							{
+								"internalType": "int256",
+								"name": "originLatitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "originLongitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "destinationLatitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "destinationLongitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "string",
+								"name": "originLink",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "destinationLink",
+								"type": "string"
+							},
+							{
+								"internalType": "uint256",
+								"name": "cargoInsurableValue",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "serviceFee",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "serviceFeeByBidder",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "requestedPickupTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "requestedDeliveryTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "auctionTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "address",
+								"name": "driverAssigned",
+								"type": "address"
+							},
+							{
+								"internalType": "enum Types.Status",
+								"name": "status",
+								"type": "uint8"
+							}
+						],
+						"internalType": "struct Types.ServiceRequestInfo",
+						"name": "serviceRequestInfo",
+						"type": "tuple"
+					}
+				],
+				"name": "saveDisutedServiceRequest",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/Dispute/DisputedServiceRequest.sol": "DisputedServiceRequest"
+		},
+		"evmVersion": "shanghai",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"contracts/Dispute/DisputedServiceRequest.sol": {
+			"keccak256": "0xe3eedfe03ed6f99a2545b58ed158e26fd7ce66f523471212f97e04645729fe28",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://ef1fd644236974671186fddd3b8172f5eece6749979420ba2884c0d115f5995f",
+				"dweb:/ipfs/QmPP45mMBKQ9sGSgDy9ZMtTvPNjR8nsRsnc6QaCyjPZcja"
+			]
+		},
+		"contracts/Dispute/Events.sol": {
+			"keccak256": "0x034ce2226a452056fff964bc0548441893e0226bef404857fc8664818f874a07",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://2bba269ad4b2f849a7b4d340db9ba9d1794d152ddcf597a179110d8f037c2e4f",
+				"dweb:/ipfs/QmTi93CPPUfe3e4HD96T39uhZHDCtPQnLKA6Bx6TGxSk6Y"
+			]
+		},
+		"contracts/Dispute/Types.sol": {
+			"keccak256": "0x8fc9b0eee6a980635fdd808e7ace794352d8b82cf4420a5406988c471f0e0c74",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://9ce7f111ff43a5d4781fe4fafaed2dd3f1ad5d30b6c184c5ad02b4451467f1fc",
+				"dweb:/ipfs/QmUhXpAer5QfFZsWNKesHAA5x5gyRehxwz5SLtXhxGwTbq"
+			]
+		}
+	},
+	"version": 1
+}

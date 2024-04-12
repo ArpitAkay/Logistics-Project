@@ -1,0 +1,1131 @@
+{
+	"compiler": {
+		"version": "0.8.25+commit.b61c2a91"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_geekToken",
+						"type": "address"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "serviceRequestId",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "AccessDenied",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "bidder",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "AlreadyBidded",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "serviceRequestId",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "AuctionEnded",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "serviceRequestId",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "AuctionInProgress",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "serviceRequestId",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "AuctionNotStarted",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "cargoInsuranceValue",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "InvalidCargoInsuranceValue",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "int256",
+						"name": "latitude",
+						"type": "int256"
+					},
+					{
+						"internalType": "int256",
+						"name": "longitude",
+						"type": "int256"
+					},
+					{
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "InvalidCoordinates",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "description",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "InvalidDescription",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "geoHash",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "InvalidGeoHash",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "value",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "InvalidProductValue",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "serviceFee",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "InvalidServiceFee",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "InvalidTimmings",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "serviceRequestId",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "SRCannotBeUpdated",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "serviceRequestId",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "ServiceRequestCannotBeCancelled",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "serviceRequestId",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "ServiceRequestDoesNotExists",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "serviceRequestId",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "ServiceRequestOutOfRegion",
+				"type": "error"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "serviceRequestId",
+						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "AuctionResult",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "serviceRequestId",
+						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "serviceFee",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "bidder",
+						"type": "address"
+					}
+				],
+				"name": "BiddedSuccessfully",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "from",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "to",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "cargoAmountValue",
+						"type": "uint256"
+					}
+				],
+				"name": "CargoValueRefunded",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "serviceRequestId",
+						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "IncreasedAuctionTimeForSR",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "serviceRequestId",
+						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "shipperAddr",
+						"type": "address"
+					}
+				],
+				"name": "ServiceRequestCancelled",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"components": [
+							{
+								"internalType": "string",
+								"name": "serviceRequestId",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "description",
+								"type": "string"
+							},
+							{
+								"internalType": "address",
+								"name": "shipperAddr",
+								"type": "address"
+							},
+							{
+								"internalType": "address",
+								"name": "receiverAddr",
+								"type": "address"
+							},
+							{
+								"internalType": "int256",
+								"name": "originLatitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "originLongitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "destinationLatitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "destinationLongitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "string",
+								"name": "originLink",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "destinationLink",
+								"type": "string"
+							},
+							{
+								"internalType": "uint256",
+								"name": "cargoInsurableValue",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "serviceFee",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "serviceFeeByBidder",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "requestedPickupTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "requestedDeliveryTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "auctionTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "address",
+								"name": "driverAssigned",
+								"type": "address"
+							},
+							{
+								"internalType": "enum Types.Status",
+								"name": "status",
+								"type": "uint8"
+							}
+						],
+						"indexed": false,
+						"internalType": "struct Types.ServiceRequestInfo",
+						"name": "serviceRequestInfo",
+						"type": "tuple"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "ServiceRequestCreated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "serviceRequestId",
+						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "UpdatedSRStatus",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "_serviceRequestId",
+						"type": "string"
+					}
+				],
+				"name": "cancelServiceRequest",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"components": [
+							{
+								"internalType": "string",
+								"name": "description",
+								"type": "string"
+							},
+							{
+								"internalType": "address",
+								"name": "shipperAddr",
+								"type": "address"
+							},
+							{
+								"internalType": "address",
+								"name": "receiverAddr",
+								"type": "address"
+							},
+							{
+								"internalType": "int256",
+								"name": "originLatitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "originLongitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "destinationLatitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "destinationLongitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "string",
+								"name": "originLink",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "destinationLink",
+								"type": "string"
+							},
+							{
+								"internalType": "uint256",
+								"name": "cargoInsurableValue",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "requestedPickupTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "requestedDeliveryTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "auctionTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "enum Types.ServiceRequestInitialStatus",
+								"name": "status",
+								"type": "uint8"
+							}
+						],
+						"internalType": "struct Types.ServiceRequestInfoDto",
+						"name": "_serviceRequestInfoDto",
+						"type": "tuple"
+					}
+				],
+				"name": "createServiceRequest",
+				"outputs": [],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "_serviceRequestId",
+						"type": "string"
+					}
+				],
+				"name": "decideWinner",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "_serviceRequestId",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_serviceFee",
+						"type": "uint256"
+					}
+				],
+				"name": "dutchBid",
+				"outputs": [],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "_geoHash",
+						"type": "string"
+					}
+				],
+				"name": "getAllServiceRequestInfosInGeoHash",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "string",
+								"name": "serviceRequestId",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "description",
+								"type": "string"
+							},
+							{
+								"internalType": "address",
+								"name": "shipperAddr",
+								"type": "address"
+							},
+							{
+								"internalType": "address",
+								"name": "receiverAddr",
+								"type": "address"
+							},
+							{
+								"internalType": "int256",
+								"name": "originLatitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "originLongitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "destinationLatitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "destinationLongitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "string",
+								"name": "originLink",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "destinationLink",
+								"type": "string"
+							},
+							{
+								"internalType": "uint256",
+								"name": "cargoInsurableValue",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "serviceFee",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "serviceFeeByBidder",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "requestedPickupTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "requestedDeliveryTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "auctionTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "address",
+								"name": "driverAssigned",
+								"type": "address"
+							},
+							{
+								"internalType": "enum Types.Status",
+								"name": "status",
+								"type": "uint8"
+							}
+						],
+						"internalType": "struct Types.ServiceRequestInfo[]",
+						"name": "",
+						"type": "tuple[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getAllServiceRequestOfUser",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "string",
+								"name": "serviceRequestId",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "description",
+								"type": "string"
+							},
+							{
+								"internalType": "address",
+								"name": "shipperAddr",
+								"type": "address"
+							},
+							{
+								"internalType": "address",
+								"name": "receiverAddr",
+								"type": "address"
+							},
+							{
+								"internalType": "int256",
+								"name": "originLatitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "originLongitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "destinationLatitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "destinationLongitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "string",
+								"name": "originLink",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "destinationLink",
+								"type": "string"
+							},
+							{
+								"internalType": "uint256",
+								"name": "cargoInsurableValue",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "serviceFee",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "serviceFeeByBidder",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "requestedPickupTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "requestedDeliveryTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "auctionTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "address",
+								"name": "driverAssigned",
+								"type": "address"
+							},
+							{
+								"internalType": "enum Types.Status",
+								"name": "status",
+								"type": "uint8"
+							}
+						],
+						"internalType": "struct Types.ServiceRequestInfo[]",
+						"name": "",
+						"type": "tuple[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "_serviceRequestId",
+						"type": "string"
+					}
+				],
+				"name": "getServiceRequestInfoById",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "string",
+								"name": "serviceRequestId",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "description",
+								"type": "string"
+							},
+							{
+								"internalType": "address",
+								"name": "shipperAddr",
+								"type": "address"
+							},
+							{
+								"internalType": "address",
+								"name": "receiverAddr",
+								"type": "address"
+							},
+							{
+								"internalType": "int256",
+								"name": "originLatitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "originLongitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "destinationLatitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "destinationLongitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "string",
+								"name": "originLink",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "destinationLink",
+								"type": "string"
+							},
+							{
+								"internalType": "uint256",
+								"name": "cargoInsurableValue",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "serviceFee",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "serviceFeeByBidder",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "requestedPickupTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "requestedDeliveryTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "auctionTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "address",
+								"name": "driverAssigned",
+								"type": "address"
+							},
+							{
+								"internalType": "enum Types.Status",
+								"name": "status",
+								"type": "uint8"
+							}
+						],
+						"internalType": "struct Types.ServiceRequestInfo",
+						"name": "",
+						"type": "tuple"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "_serviceRequestId",
+						"type": "string"
+					}
+				],
+				"name": "updateDraftedServiceRequest",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "_serviceRequestId",
+						"type": "string"
+					},
+					{
+						"internalType": "enum Types.Status",
+						"name": "_status",
+						"type": "uint8"
+					}
+				],
+				"name": "updateServiceRequestStatusByDriver",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "_serviceRequestId",
+						"type": "string"
+					},
+					{
+						"internalType": "enum Types.Status",
+						"name": "_status",
+						"type": "uint8"
+					},
+					{
+						"internalType": "enum Types.Acceptance",
+						"name": "acceptance",
+						"type": "uint8"
+					}
+				],
+				"name": "updateServiceRequestStatusByReceiver",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "_serviceRequestId",
+						"type": "string"
+					},
+					{
+						"internalType": "enum Types.Status",
+						"name": "_status",
+						"type": "uint8"
+					}
+				],
+				"name": "updateServiceRequestStatusByShipper",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/ServiceRequest/ServiceRequest.sol": "ServiceRequest"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"@openzeppelin/contracts/token/ERC20/IERC20.sol": {
+			"keccak256": "0xc6a8ff0ea489379b61faa647490411b80102578440ab9d84e9a957cc12164e70",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://0ea104e577e63faea3b69c415637e99e755dcbf64c5833d7140c35a714d6d90c",
+				"dweb:/ipfs/Qmau6x4Ns9XdyynRCNNp3RhLqijJjFm7z5fyZazfYFGYdq"
+			]
+		},
+		"contracts/ServiceRequest/Errors.sol": {
+			"keccak256": "0xc52200440385acca2ade70eaf3a94649a3af1a81aa27706a5c271128803ab339",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://e0aef9f0aa50eaad095d26af30346e5aa2d92d65dcb1989b26929e89605786b0",
+				"dweb:/ipfs/QmSvaJNC8hhwfWGghMSx5psdkPehc6Jtn8ByE998TTj2Jw"
+			]
+		},
+		"contracts/ServiceRequest/Events.sol": {
+			"keccak256": "0xf61e8716da672b8fa658c27572dc54351effd4eacbcd5969f83c79c78117f708",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://f1bb72ee7e4e7880a3a57730fef6cffd19d7ad597cd99d8a89567363074f26d3",
+				"dweb:/ipfs/QmcpbhRhrHnAex7Fqz9RGjds8RTR3LCTgEBzT9kNRRiRmS"
+			]
+		},
+		"contracts/ServiceRequest/Helpers.sol": {
+			"keccak256": "0xbe6a3017260e72fb8e53b25e7fed718bbf7ec46a884f4d814f02c9887a504912",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://a1202f1f674c4c9618df43f3185748eebc525ce25b140d81f8370696d54c0c69",
+				"dweb:/ipfs/QmQUPk14sfZYp9rEAdAnS1Hwvt5TFKn85Voh5dwhZfnCEe"
+			]
+		},
+		"contracts/ServiceRequest/IGeekToken.sol": {
+			"keccak256": "0x47e86fb4b7cc8b99ff75ef5e6b7ebc8ec308ce4428e8b2cbace2c63c1603f5ac",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://b27ba22c1e0feaa63902d567dfe4b90d2a90a1f13d31c851778bca15f30f8c89",
+				"dweb:/ipfs/QmagZHEj8te9mpPAc5NMjAJ52VqTJt7xNMbT2T81YUZmd3"
+			]
+		},
+		"contracts/ServiceRequest/ServiceRequest.sol": {
+			"keccak256": "0x1132c2f751035e602b346675fc40d56ca7b17c901ca7752a3c1e41de20240c53",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://23a663b637d0edf0c868a06da38d047895f4b7499d6df550e87a4992ada94e13",
+				"dweb:/ipfs/QmaH4U8K1w1hv2J7PyWiiGqKCPRa8nHDrs7b6mgKhkt3vw"
+			]
+		},
+		"contracts/ServiceRequest/Types.sol": {
+			"keccak256": "0x88e85956de4307b9ffe999087f9afd30d1337c58cc6d3a095f777175c8dfcc19",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://e9180524e774d8ff41b2b647916900884b1178389574bbf372bdead43437c734",
+				"dweb:/ipfs/QmefnLRpFnazAmZPD4Mv5mB3nxCUg5xcLeHRFwUtzWyLs4"
+			]
+		}
+	},
+	"version": 1
+}
