@@ -1,10 +1,207 @@
 {
 	"compiler": {
-		"version": "0.8.24+commit.e11b9ed9"
+		"version": "0.8.25+commit.b61c2a91"
 	},
 	"language": "Solidity",
 	"output": {
 		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "serviceRequestId",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "AlreadyVoted",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "serviceRequestId",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "SelfVoteNotAllowed",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "serviceRequestId",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "ServiceRequestDoesNotExists",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "serviceRequestId",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "ServiceRequestOutOfRegion",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "serviceRequestId",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "VotingEndedAlready",
+				"type": "error"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "from",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "serviceRequestId",
+						"type": "string"
+					},
+					{
+						"components": [
+							{
+								"internalType": "string",
+								"name": "serviceRequestId",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "description",
+								"type": "string"
+							},
+							{
+								"internalType": "address",
+								"name": "shipperAddr",
+								"type": "address"
+							},
+							{
+								"internalType": "address",
+								"name": "receiverAddr",
+								"type": "address"
+							},
+							{
+								"internalType": "int256",
+								"name": "originLatitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "originLongitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "destinationLatitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "destinationLongitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "string",
+								"name": "originLink",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "destinationLink",
+								"type": "string"
+							},
+							{
+								"internalType": "uint256",
+								"name": "cargoInsurableValue",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "serviceFee",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "serviceFeeByBidder",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "requestedPickupTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "requestedDeliveryTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "auctionTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "address",
+								"name": "driverAssigned",
+								"type": "address"
+							},
+							{
+								"internalType": "enum Types.Status",
+								"name": "status",
+								"type": "uint8"
+							}
+						],
+						"indexed": false,
+						"internalType": "struct Types.ServiceRequestInfo",
+						"name": "serviceRequestInfo",
+						"type": "tuple"
+					}
+				],
+				"name": "DisutedSRSaved",
+				"type": "event"
+			},
 			{
 				"anonymous": false,
 				"inputs": [
@@ -117,6 +314,136 @@
 				"type": "event"
 			},
 			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "from",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "serviceRequestId",
+						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "message",
+						"type": "string"
+					}
+				],
+				"name": "VotingMessage",
+				"type": "event"
+			},
+			{
+				"inputs": [],
+				"name": "getAllDisputedServiceRequestInDriverArea",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "string",
+								"name": "serviceRequestId",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "description",
+								"type": "string"
+							},
+							{
+								"internalType": "address",
+								"name": "shipperAddr",
+								"type": "address"
+							},
+							{
+								"internalType": "address",
+								"name": "receiverAddr",
+								"type": "address"
+							},
+							{
+								"internalType": "int256",
+								"name": "originLatitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "originLongitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "destinationLatitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "int256",
+								"name": "destinationLongitude",
+								"type": "int256"
+							},
+							{
+								"internalType": "string",
+								"name": "originLink",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "destinationLink",
+								"type": "string"
+							},
+							{
+								"internalType": "uint256",
+								"name": "cargoInsurableValue",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "serviceFee",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "serviceFeeByBidder",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "requestedPickupTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "requestedDeliveryTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "auctionTime",
+								"type": "uint256"
+							},
+							{
+								"internalType": "address",
+								"name": "driverAssigned",
+								"type": "address"
+							},
+							{
+								"internalType": "enum Types.Status",
+								"name": "status",
+								"type": "uint8"
+							}
+						],
+						"internalType": "struct Types.ServiceRequestInfo[]",
+						"name": "",
+						"type": "tuple[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
 				"inputs": [
 					{
 						"internalType": "address",
@@ -225,6 +552,24 @@
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "_serviceRequestId",
+						"type": "string"
+					},
+					{
+						"internalType": "enum Types.WhomToVote",
+						"name": "whomToVote",
+						"type": "uint8"
+					}
+				],
+				"name": "vote",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
 			}
 		],
 		"devdoc": {
@@ -242,7 +587,7 @@
 		"compilationTarget": {
 			"contracts/Dispute/DisputedServiceRequest.sol": "DisputedServiceRequest"
 		},
-		"evmVersion": "shanghai",
+		"evmVersion": "cancun",
 		"libraries": {},
 		"metadata": {
 			"bytecodeHash": "ipfs"
@@ -255,27 +600,43 @@
 	},
 	"sources": {
 		"contracts/Dispute/DisputedServiceRequest.sol": {
-			"keccak256": "0xe3eedfe03ed6f99a2545b58ed158e26fd7ce66f523471212f97e04645729fe28",
+			"keccak256": "0xf8469db2accf798e1cf83a3e300dea82e695d24577c51bfc5f0d85ad92bc3a1e",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://ef1fd644236974671186fddd3b8172f5eece6749979420ba2884c0d115f5995f",
-				"dweb:/ipfs/QmPP45mMBKQ9sGSgDy9ZMtTvPNjR8nsRsnc6QaCyjPZcja"
+				"bzz-raw://4b0805365ced8d93c5a8651607471219d6f3bde05f5b48885416abb6fb664784",
+				"dweb:/ipfs/QmeQxurJv9sqZnMRaKWMDDruCXafRm4dKTDQTg2a7Pq5HU"
+			]
+		},
+		"contracts/Dispute/Errors.sol": {
+			"keccak256": "0xe256caa15668a947db4e27c767c85c4cf579c0c3b109dd304a7925262b4de826",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://77ba720fb0c2c59c3ec05cd195f8da174d4023f95687e3b0d6200f892cf87f01",
+				"dweb:/ipfs/QmQVWowDcQ26LcyG4NY1xeotFXd9DsAZ5ucj2SRaJMRhe3"
 			]
 		},
 		"contracts/Dispute/Events.sol": {
-			"keccak256": "0x034ce2226a452056fff964bc0548441893e0226bef404857fc8664818f874a07",
+			"keccak256": "0x76c779702b0e300a397f8cb59bbb449899881a850f725f00e41a382485057210",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://2bba269ad4b2f849a7b4d340db9ba9d1794d152ddcf597a179110d8f037c2e4f",
-				"dweb:/ipfs/QmTi93CPPUfe3e4HD96T39uhZHDCtPQnLKA6Bx6TGxSk6Y"
+				"bzz-raw://4688087838b9e49163bb81c813219a1d0c0c45c26c50ceb304250ac794b0413c",
+				"dweb:/ipfs/QmQVYZ14zV6Rv9FYTBPtdDdqmXXhu1atPYR2nc7impZhq8"
+			]
+		},
+		"contracts/Dispute/Helpers.sol": {
+			"keccak256": "0xbe6a3017260e72fb8e53b25e7fed718bbf7ec46a884f4d814f02c9887a504912",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://a1202f1f674c4c9618df43f3185748eebc525ce25b140d81f8370696d54c0c69",
+				"dweb:/ipfs/QmQUPk14sfZYp9rEAdAnS1Hwvt5TFKn85Voh5dwhZfnCEe"
 			]
 		},
 		"contracts/Dispute/Types.sol": {
-			"keccak256": "0x8fc9b0eee6a980635fdd808e7ace794352d8b82cf4420a5406988c471f0e0c74",
+			"keccak256": "0x2cf9f97ea0d90e78ceb9fec63adae7db24d7d6a1aef934d8a5408ab629339643",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://9ce7f111ff43a5d4781fe4fafaed2dd3f1ad5d30b6c184c5ad02b4451467f1fc",
-				"dweb:/ipfs/QmUhXpAer5QfFZsWNKesHAA5x5gyRehxwz5SLtXhxGwTbq"
+				"bzz-raw://d334d0c95b1a83a938610e96b5b63bd66bf2a1ce5e6ed57cfc70798b96eab581",
+				"dweb:/ipfs/QmXqbr6Yx4JtELWKHRs2b25j2oAJXRM1tH8XQjsJqy92jA"
 			]
 		}
 	},

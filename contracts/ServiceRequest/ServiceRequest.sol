@@ -8,17 +8,19 @@ import "./Errors.sol";
 import "./Events.sol";
 import "./Helpers.sol";
 import "./IGeekToken.sol";
+import "./IDisputedServiceRequest.sol";
 
 contract ServiceRequest {
     IGeekToken immutable geekToken; 
-    
+    IDisputedServiceRequest immutable disputedServiceRequest;
 
     // State variables
     Types.ServiceRequestInfo[] internal serviceRequestInfos;
     mapping (string => Types.DriverInfoDto[]) peopleWhoAlreadyBidded;
 
-    constructor(address _geekToken) {
+    constructor(address _geekToken, address _disputedServiceRequest) {
         geekToken = IGeekToken(_geekToken);
+        disputedServiceRequest = IDisputedServiceRequest(_disputedServiceRequest);
     }
 
     modifier hasRoleShipperAndReceiver(address _shipper, address _receiver) {
@@ -412,7 +414,7 @@ contract ServiceRequest {
                 serviceRequestInfos[index].status = Types.Status.DISPUTE;
 
                 // send service request to dispute contract
-
+                disputedServiceRequest.saveDisutedServiceRequest(address(this), serviceRequestInfo);
                 geekToken.transferTokens(serviceRequestInfo.driverAssigned, serviceRequestInfo.cargoInsurableValue, Types.Acceptance.UNCONDITIONAL);
             }
 

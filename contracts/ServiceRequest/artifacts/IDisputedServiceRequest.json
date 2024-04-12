@@ -1,0 +1,167 @@
+{
+	"deploy": {
+		"VM:-": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"main:1": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"ropsten:3": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"rinkeby:4": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"kovan:42": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"goerli:5": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"Custom": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		}
+	},
+	"data": {
+		"bytecode": {
+			"functionDebugData": {},
+			"generatedSources": [],
+			"linkReferences": {},
+			"object": "",
+			"opcodes": "",
+			"sourceMap": ""
+		},
+		"deployedBytecode": {
+			"functionDebugData": {},
+			"generatedSources": [],
+			"immutableReferences": {},
+			"linkReferences": {},
+			"object": "",
+			"opcodes": "",
+			"sourceMap": ""
+		},
+		"gasEstimates": null,
+		"methodIdentifiers": {
+			"saveDisutedServiceRequest(address,(string,string,address,address,int256,int256,int256,int256,string,string,uint256,uint256,uint256,uint256,uint256,uint256,address,uint8))": "77e6b3d8"
+		}
+	},
+	"abi": [
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "from",
+					"type": "address"
+				},
+				{
+					"components": [
+						{
+							"internalType": "string",
+							"name": "serviceRequestId",
+							"type": "string"
+						},
+						{
+							"internalType": "string",
+							"name": "description",
+							"type": "string"
+						},
+						{
+							"internalType": "address",
+							"name": "shipperAddr",
+							"type": "address"
+						},
+						{
+							"internalType": "address",
+							"name": "receiverAddr",
+							"type": "address"
+						},
+						{
+							"internalType": "int256",
+							"name": "originLatitude",
+							"type": "int256"
+						},
+						{
+							"internalType": "int256",
+							"name": "originLongitude",
+							"type": "int256"
+						},
+						{
+							"internalType": "int256",
+							"name": "destinationLatitude",
+							"type": "int256"
+						},
+						{
+							"internalType": "int256",
+							"name": "destinationLongitude",
+							"type": "int256"
+						},
+						{
+							"internalType": "string",
+							"name": "originLink",
+							"type": "string"
+						},
+						{
+							"internalType": "string",
+							"name": "destinationLink",
+							"type": "string"
+						},
+						{
+							"internalType": "uint256",
+							"name": "cargoInsurableValue",
+							"type": "uint256"
+						},
+						{
+							"internalType": "uint256",
+							"name": "serviceFee",
+							"type": "uint256"
+						},
+						{
+							"internalType": "uint256",
+							"name": "serviceFeeByBidder",
+							"type": "uint256"
+						},
+						{
+							"internalType": "uint256",
+							"name": "requestedPickupTime",
+							"type": "uint256"
+						},
+						{
+							"internalType": "uint256",
+							"name": "requestedDeliveryTime",
+							"type": "uint256"
+						},
+						{
+							"internalType": "uint256",
+							"name": "auctionTime",
+							"type": "uint256"
+						},
+						{
+							"internalType": "address",
+							"name": "driverAssigned",
+							"type": "address"
+						},
+						{
+							"internalType": "enum Types.Status",
+							"name": "status",
+							"type": "uint8"
+						}
+					],
+					"internalType": "struct Types.ServiceRequestInfo",
+					"name": "serviceRequestInfo",
+					"type": "tuple"
+				}
+			],
+			"name": "saveDisutedServiceRequest",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		}
+	]
+}

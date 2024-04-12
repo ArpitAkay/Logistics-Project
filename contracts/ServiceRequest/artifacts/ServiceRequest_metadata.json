@@ -11,6 +11,11 @@
 						"internalType": "address",
 						"name": "_geekToken",
 						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "_disputedServiceRequest",
+						"type": "address"
 					}
 				],
 				"stateMutability": "nonpayable",
@@ -1102,6 +1107,14 @@
 				"dweb:/ipfs/QmQUPk14sfZYp9rEAdAnS1Hwvt5TFKn85Voh5dwhZfnCEe"
 			]
 		},
+		"contracts/ServiceRequest/IDisputedServiceRequest.sol": {
+			"keccak256": "0x9c6c7433c52ceab7d7d958c9dbc88f88520e366166452067da62fd17303ca8b8",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://1ebe7a56a959ad4755fe49c4267be22fb6ac2799afb687568b3f3b4f80750f08",
+				"dweb:/ipfs/QmPAH6jBFB9b2gVVUehgNcrtuoqJuxGBBJc7wjZmuoda9b"
+			]
+		},
 		"contracts/ServiceRequest/IGeekToken.sol": {
 			"keccak256": "0x47e86fb4b7cc8b99ff75ef5e6b7ebc8ec308ce4428e8b2cbace2c63c1603f5ac",
 			"license": "MIT",
@@ -1111,11 +1124,11 @@
 			]
 		},
 		"contracts/ServiceRequest/ServiceRequest.sol": {
-			"keccak256": "0x1132c2f751035e602b346675fc40d56ca7b17c901ca7752a3c1e41de20240c53",
+			"keccak256": "0x3e0235ebfe8ced3419f177beb3077e44bc230e83e4f69e6865f1faf2b8177931",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://23a663b637d0edf0c868a06da38d047895f4b7499d6df550e87a4992ada94e13",
-				"dweb:/ipfs/QmaH4U8K1w1hv2J7PyWiiGqKCPRa8nHDrs7b6mgKhkt3vw"
+				"bzz-raw://74953b35413562a6e62c7705898d886c10cbf8ea108728dd878b027c07f63062",
+				"dweb:/ipfs/QmSkkoUvQRJETbmQJWtPuEgfC7osWnmoSve1XNL6omYSV1"
 			]
 		},
 		"contracts/ServiceRequest/Types.sol": {
