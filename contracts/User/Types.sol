@@ -13,7 +13,7 @@ library Types {
     }
 
     enum Role{
-        None, Admin, Shipper, Driver, Reciever
+        None, Admin, Shipper, Driver, Receiver
     }
 
     enum RequestStatus {

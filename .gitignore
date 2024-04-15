@@ -1,0 +1,7 @@
+/contracts/artifacts
+
+/contracts/Dispute/artifacts
+/contracts/DrivingLicense/artifacts
+/contracts/GeekToken/artifacts
+/contracts/ServiceRequest/artifacts
+/contracts/User/artifacts

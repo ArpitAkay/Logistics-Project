@@ -115,13 +115,6 @@ contract UserRoleRequest is Ownable{
         return roleRequests;
     }
 
-    function isUserRegistered(address _userAddr) public view returns(bool) {
-        if(bytes(users[_userAddr].userName).length > 0) {
-            return true;
-        }
-        return false;
-    }
-
     function getRoleRequestByIdWithIndex(string memory _roleRequestId) public view returns(Types.RoleRequestWithIndexDto memory) {
 
         for(uint i=0; i<roleRequests.length; i++){
@@ -234,7 +227,7 @@ contract UserRoleRequest is Ownable{
             return false;
         }
 
-        if(requestedRole == Types.Role.Reciever) {
+        if(requestedRole == Types.Role.Receiver) {
             for(uint i=0; i<approverRoles.length; i++){
                 if(approverRoles[i] == Types.Role.None) {
                     return false;
@@ -246,4 +239,98 @@ contract UserRoleRequest is Ownable{
         return false;
         
     }
+
+    function isUserRegistered(address _userAddr) external view returns(bool) {
+        if(bytes(users[_userAddr].userName).length > 0) {
+            return true;
+        }
+        return false;
+    }
+
+    function getUserGeoHash(address _addr) external view returns (string memory) {
+        return users[_addr].geoHash;
+    }
+
+    function hasRoleShipperAndReceiver(address _shipper, address _receiver) external  view {
+        Types.Role[] memory receiverRoles = users[_receiver].role;
+
+        bool isShipper = false;
+        bool isReceiver = false;
+
+        for(uint i = 0; i<receiverRoles.length; i++) {
+            if(receiverRoles[i] == Types.Role.Receiver || receiverRoles[i] == Types.Role.Admin) {
+                isReceiver = true;
+                break;
+            }
+        }
+
+        if(!isReceiver) {
+            revert Errors.NotAuthorized({userAddress : _receiver, errMsg :"Receiver address provided doesn't have receiver or admin role"});
+        }
+
+        Types.Role[] memory shipperRoles = users[_shipper].role;
+        for(uint i = 0; i<shipperRoles.length; i++) {
+            if(shipperRoles[i] == Types.Role.Shipper || shipperRoles[i] == Types.Role.Admin) {
+                isShipper = true;
+                break;
+            }
+        }
+
+        if(!isShipper) {
+            revert Errors.NotAuthorized({userAddress : _shipper, errMsg :"Shipper address provided doesn't have shipper or admin role"});
+        }
+    }
+
+    function hasRoleShipper(address _addr) external view {
+        Types.Role[] memory userRoles = users[_addr].role;
+
+        bool isShipper = false;
+
+        for(uint i=0; i<userRoles.length; i++) {
+            if(userRoles[i] == Types.Role.Shipper || userRoles[i] == Types.Role.Admin) {
+                isShipper = true;
+                break;
+            }
+        }
+
+        if(!isShipper) {
+            revert Errors.NotAuthorized({userAddress : _addr, errMsg :"User address provided doesn't have shipper or admin role"});
+        }
+    }
+
+    function hasRoleDriver(address _addr) external view {
+        Types.Role[] memory userRoles = users[_addr].role;
+
+        bool isDriver = false;
+
+        for(uint i=0; i<userRoles.length; i++) {
+            if(userRoles[i] == Types.Role.Driver || userRoles[i] == Types.Role.Admin) {
+                isDriver = true;
+                break;
+            }
+        }
+
+        if(!isDriver) {
+            revert Errors.NotAuthorized({userAddress : _addr, errMsg :"User address provided doesn't have Driver or admin role"});
+        }
+    }
+
+    function hasRoleReceiver(address _addr) external view {
+        Types.Role[] memory userRoles = users[_addr].role;
+
+        bool isReceiver = false;
+
+        for(uint i=0; i<userRoles.length; i++) {
+            if(userRoles[i] == Types.Role.Receiver || userRoles[i] == Types.Role.Admin) {
+                isReceiver = true;
+                break;
+            }
+        }
+
+        if(!isReceiver) {
+            revert Errors.NotAuthorized({userAddress : _addr, errMsg :"User address provided doesn't have receiver or admin role"});
+        }
+    }
+
+    
 }
