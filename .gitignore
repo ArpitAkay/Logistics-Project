@@ -5,3 +5,7 @@
 /contracts/GeekToken/artifacts
 /contracts/ServiceRequest/artifacts
 /contracts/User/artifacts
+
+.deploys
+.deps
+.states
