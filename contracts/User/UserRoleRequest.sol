@@ -75,6 +75,13 @@ contract UserRoleRequest is Ownable{
         _;
     }
 
+    modifier checkUserAlreadyExist() {
+        if(users[msg.sender].userAddress != address(0)){
+            revert Errors.UserAlreadyExists({userAddress : msg.sender, errMsg :"User already exists"});
+        }
+        _;
+    }
+
     modifier checkRoleRequest(Types.Role _requestedRole) {
         if(_requestedRole == Types.Role.None){
             revert Errors.InvalidInput({
@@ -92,7 +99,7 @@ contract UserRoleRequest is Ownable{
         _;
     }
 
-    function createUser(string memory _userName, string memory _geoHash) public checkValidInput(_userName,_geoHash) {
+    function createUser(string memory _userName, string memory _geoHash) public checkValidInput(_userName,_geoHash) checkUserAlreadyExist {
         Types.Role[] memory noneRole = new Types.Role[](1);
         noneRole[0] = Types.Role.None;
 

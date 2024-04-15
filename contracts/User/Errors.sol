@@ -10,4 +10,5 @@ library Errors {
     error AlreadyProcessedError(address userAddress, string errMsg, string requestId);
     error InvalidInput(address userAddress, string errMsg);
     error NFTNotFound(address userAddress, string errMsg);
+    error UserAlreadyExists(address userAddress, string errMsg);
 }
