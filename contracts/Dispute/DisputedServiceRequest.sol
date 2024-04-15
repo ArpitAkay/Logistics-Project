@@ -6,8 +6,9 @@ import "./Events.sol";
 import "./Helpers.sol";
 import "./Errors.sol";
 import "./IUserRoleRequest.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract DisputedServiceRequest {
+contract DisputedServiceRequest is Ownable {
     IUserRoleRequest immutable userRoleRequest;
 
     // State variables
@@ -16,7 +17,10 @@ contract DisputedServiceRequest {
     mapping (string => Types.VoteCount) voteCounts;
     mapping(string => address[]) internal peopleWhoAlreadyVoted;
 
-    constructor(address _userRoleRequest) {
+    address serviceRequestAddr = address(0);
+
+
+    constructor(address initialOwner, address _userRoleRequest) Ownable(initialOwner) {
         userRoleRequest = IUserRoleRequest(_userRoleRequest);
     }
 
@@ -26,7 +30,23 @@ contract DisputedServiceRequest {
         _;
     }
 
-    function saveDisutedServiceRequest(address from, Types.ServiceRequestInfo memory serviceRequestInfo) external {
+    modifier hasRoleDriver(address _addr) {
+        userRoleRequest.hasRoleDriver(_addr);
+        _;
+    }
+
+    modifier isServiceRequestContract(address _addr) {
+        if(serviceRequestAddr != _addr) {
+            revert Errors.AccessDenied({ from: _addr, message: "You are not allowed to call this method"});
+        }
+        _;
+    }
+
+    function updateServiceRequestAddr(address _addr) external onlyOwner {
+        serviceRequestAddr = _addr;
+    } 
+
+    function saveDisutedServiceRequest(address from, Types.ServiceRequestInfo memory serviceRequestInfo) isServiceRequestContract(msg.sender) external {
         if(serviceRequestInfo.status != Types.Status.DISPUTE) {
             emit Events.OnlyDisputedSRCanBeSaved(from, serviceRequestInfo);
             return;
@@ -94,7 +114,7 @@ contract DisputedServiceRequest {
         voteCounts[_serviceRequestId].totalVotesCounted = voteCounts[_serviceRequestId].driverVote + voteCounts[_serviceRequestId].receiverVote;
     }
 
-    function decideWinner(string memory _serviceRequestId) external returns (Types.ServiceRequestInfo memory){
+    function decideWinner(string memory _serviceRequestId) isServiceRequestContract(msg.sender) external returns (Types.ServiceRequestInfo memory) {
         Types.ServiceRequestResult memory serviceRequestResult = getDisputedServiceRequestByIdWithIndex(_serviceRequestId);
         Types.ServiceRequestInfo memory serviceRequestInfo = serviceRequestResult.serviceRequest;
         uint256 index = serviceRequestResult.index;
@@ -146,7 +166,7 @@ contract DisputedServiceRequest {
         revert Errors.ServiceRequestDoesNotExists({ serviceRequestId: _serviceRequestId, message: "Service request does not exists"});
     }
 
-    function getAllDisputedServiceRequestInDriverArea() external view returns (Types.ServiceRequestInfo[] memory) {
+    function getAllDisputedServiceRequestInDriverArea() hasRoleDriver(msg.sender) external view returns (Types.ServiceRequestInfo[] memory) {
         string memory _geoHash =  userRoleRequest.getUserGeoHash(msg.sender);
 
         Types.ServiceRequestInfo[] memory temp = new Types.ServiceRequestInfo[](serviceRequestInfos.length);

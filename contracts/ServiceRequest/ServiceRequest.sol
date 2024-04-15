@@ -511,12 +511,12 @@ contract ServiceRequest {
         revert Errors.ServiceRequestDoesNotExists({ serviceRequestId: _serviceRequestId, message: "Service request does not exists"});
     }
 
-    function decideWinnerForDispute(string memory _serviceRequestId) external returns (Types.ServiceRequestInfo memory){
+    function decideWinnerForDispute(string memory _serviceRequestId) external returns (Types.ServiceRequestInfo memory) {
         Types.ServiceRequestInfo memory serviceRequestInfo = disputedServiceRequest.decideWinner(_serviceRequestId);
          disputedServiceRequest.getDisputedServiceRequestById(_serviceRequestId);
 
         if(serviceRequestInfo.status != Types.Status.DISPUTE_RESOLVED) {
-            revert("");
+            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Voting on dispute is still in progress"});
         }
 
         Types.ServiceRequestResult memory serviceRequestResult = getServiceRequestById(_serviceRequestId);
