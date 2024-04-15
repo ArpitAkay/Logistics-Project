@@ -78,12 +78,12 @@ contract DrivingLicenseNFT is ERC721, ERC721Enumerable, ERC721Pausable, Ownable,
         peopleWhoAlreadyMintedNft[_addr] = false;
     }
 
-    function validateNFT() external view returns (bool) {
-        uint256 totalOwned = balanceOf(msg.sender);
+    function validateNFT(address _addr) external view returns (bool) {
+        uint256 totalOwned = balanceOf(_addr);
         uint256[] memory ownedTokens = new uint256[](totalOwned);
 
         for (uint256 i = 0; i < totalOwned; i++) {
-            ownedTokens[i] = tokenOfOwnerByIndex(msg.sender, i);
+            ownedTokens[i] = tokenOfOwnerByIndex(_addr, i);
         }
 
         for(uint256 i=0; i<ownedTokens.length; i++) {

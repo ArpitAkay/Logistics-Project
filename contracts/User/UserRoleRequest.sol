@@ -7,16 +7,20 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "./Types.sol";
 import "./Errors.sol";
 import "./Events.sol";
+import "./IDrivingLicenseNFT.sol";
 
 
 contract UserRoleRequest is Ownable{
 
+    IDrivingLicenseNFT immutable drivingLicenseNFT;
+
     Types.RoleRequest[] internal roleRequests;
     mapping(address => Types.User) users;
 
-    constructor(address initialOwner) 
+    constructor(address initialOwner, address drivingLicenseNFTAddress) 
     Ownable(initialOwner) 
     {
+        drivingLicenseNFT = IDrivingLicenseNFT(drivingLicenseNFTAddress);
         Types.Role[] memory adminRole = new Types.Role[](1);
         adminRole[0] = Types.Role.Admin;
 
@@ -77,6 +81,13 @@ contract UserRoleRequest is Ownable{
                 userAddress: msg.sender,
                 errMsg: "Cannot request none role"
             });
+        }
+        
+        // Need to validate Driving License NFT
+        if(_requestedRole == Types.Role.Driver){
+            if(!drivingLicenseNFT.validateNFT(msg.sender)){
+                revert Errors.NFTNotFound({userAddress : msg.sender, errMsg :"No Driving License NFT found"});
+            }
         }
         _;
     }
