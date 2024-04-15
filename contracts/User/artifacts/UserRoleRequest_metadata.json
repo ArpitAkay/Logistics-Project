@@ -1,0 +1,518 @@
+{
+	"compiler": {
+		"version": "0.8.25+commit.b61c2a91"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "initialOwner",
+						"type": "address"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "userAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "errMsg",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "requestId",
+						"type": "string"
+					}
+				],
+				"name": "AlreadyProcessedError",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "userAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "errMsg",
+						"type": "string"
+					}
+				],
+				"name": "InvalidInput",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "userAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "errMsg",
+						"type": "string"
+					}
+				],
+				"name": "NotAuthorized",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					}
+				],
+				"name": "OwnableInvalidOwner",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					}
+				],
+				"name": "OwnableUnauthorizedAccount",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "userAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "errMsg",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "requestId",
+						"type": "string"
+					}
+				],
+				"name": "RoleRequestNotFound",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "userAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "errMsg",
+						"type": "string"
+					}
+				],
+				"name": "UserNotRegistered",
+				"type": "error"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "requestId",
+						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "applicantAddress",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "enum Types.Role",
+						"name": "requestedRole",
+						"type": "uint8"
+					}
+				],
+				"name": "NewRoleRequestCreated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "userName",
+						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "userAddr",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "geoHash",
+						"type": "string"
+					}
+				],
+				"name": "NewUserCreated",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "previousOwner",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newOwner",
+						"type": "address"
+					}
+				],
+				"name": "OwnershipTransferred",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "_roleRequestId",
+						"type": "string"
+					},
+					{
+						"internalType": "bool",
+						"name": "approve",
+						"type": "bool"
+					}
+				],
+				"name": "approveOrRejectRoleRequest",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "enum Types.Role",
+						"name": "_requestedRole",
+						"type": "uint8"
+					}
+				],
+				"name": "createRoleRequest",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "_userName",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "_geoHash",
+						"type": "string"
+					}
+				],
+				"name": "createUser",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "length",
+						"type": "uint256"
+					}
+				],
+				"name": "generateRandomString",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "_roleRequestId",
+						"type": "string"
+					}
+				],
+				"name": "getRoleRequestByIdWithIndex",
+				"outputs": [
+					{
+						"components": [
+							{
+								"components": [
+									{
+										"internalType": "string",
+										"name": "requestId",
+										"type": "string"
+									},
+									{
+										"internalType": "address",
+										"name": "applicantAddress",
+										"type": "address"
+									},
+									{
+										"internalType": "enum Types.Role",
+										"name": "requestedRole",
+										"type": "uint8"
+									},
+									{
+										"internalType": "enum Types.RequestStatus",
+										"name": "requestStatus",
+										"type": "uint8"
+									},
+									{
+										"internalType": "address",
+										"name": "approverAddress",
+										"type": "address"
+									}
+								],
+								"internalType": "struct Types.RoleRequest",
+								"name": "roleRequest",
+								"type": "tuple"
+							},
+							{
+								"internalType": "uint256",
+								"name": "index",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct Types.RoleRequestWithIndexDto",
+						"name": "",
+						"type": "tuple"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getRoleRequests",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "string",
+								"name": "requestId",
+								"type": "string"
+							},
+							{
+								"internalType": "address",
+								"name": "applicantAddress",
+								"type": "address"
+							},
+							{
+								"internalType": "enum Types.Role",
+								"name": "requestedRole",
+								"type": "uint8"
+							},
+							{
+								"internalType": "enum Types.RequestStatus",
+								"name": "requestStatus",
+								"type": "uint8"
+							},
+							{
+								"internalType": "address",
+								"name": "approverAddress",
+								"type": "address"
+							}
+						],
+						"internalType": "struct Types.RoleRequest[]",
+						"name": "",
+						"type": "tuple[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_userAddr",
+						"type": "address"
+					}
+				],
+				"name": "isUserRegistered",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "owner",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "renounceOwnership",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "newOwner",
+						"type": "address"
+					}
+				],
+				"name": "transferOwnership",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"errors": {
+				"OwnableInvalidOwner(address)": [
+					{
+						"details": "The owner is not a valid owner account. (eg. `address(0)`)"
+					}
+				],
+				"OwnableUnauthorizedAccount(address)": [
+					{
+						"details": "The caller account is not authorized to perform an operation."
+					}
+				]
+			},
+			"kind": "dev",
+			"methods": {
+				"owner()": {
+					"details": "Returns the address of the current owner."
+				},
+				"renounceOwnership()": {
+					"details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner."
+				},
+				"transferOwnership(address)": {
+					"details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+				}
+			},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/User/UserRoleRequest.sol": "UserRoleRequest"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"@openzeppelin/contracts/access/Ownable.sol": {
+			"keccak256": "0xff6d0bb2e285473e5311d9d3caacb525ae3538a80758c10649a4d61029b017bb",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://8ed324d3920bb545059d66ab97d43e43ee85fd3bd52e03e401f020afb0b120f6",
+				"dweb:/ipfs/QmfEckWLmZkDDcoWrkEvMWhms66xwTLff9DDhegYpvHo1a"
+			]
+		},
+		"@openzeppelin/contracts/utils/Context.sol": {
+			"keccak256": "0x493033a8d1b176a037b2cc6a04dad01a5c157722049bbecf632ca876224dd4b2",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://6a708e8a5bdb1011c2c381c9a5cfd8a9a956d7d0a9dc1bd8bcdaf52f76ef2f12",
+				"dweb:/ipfs/Qmax9WHBnVsZP46ZxEMNRQpLQnrdE4dK8LehML1Py8FowF"
+			]
+		},
+		"contracts/User/Errors.sol": {
+			"keccak256": "0x6cbe4e596d2c14290a5ce8b685a007d37308a7652125797c2e9d0c1dc3c682b3",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://90852b07f31f39398f8441d947b53ed5a519d33aad785f333959496a9f2e1637",
+				"dweb:/ipfs/QmdhSmjDpST7FMeH1GigHqNtU7YqENx9m3wVs6vJnD7eJi"
+			]
+		},
+		"contracts/User/Events.sol": {
+			"keccak256": "0x57b6aedff68e9587928d7260b39550bccff969143eb3ff313a62f31df1396500",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://4915c4d7774f82c73a54547dce0870f7b64c7aa7df9c24a7c016d6f8ead80ec5",
+				"dweb:/ipfs/QmbcCohNR6qh6vqPvVgt7KpqdgRtSAaCFB6xCgBYfiiMKk"
+			]
+		},
+		"contracts/User/Types.sol": {
+			"keccak256": "0xbe3909f550106d6602fa5e1e84193d69014712d87a320793e49835d2a49ba678",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://6235c3d1cce086feee2e35d322a80b23f0af52dafd6fa0f40a56a98bb24ad9af",
+				"dweb:/ipfs/QmSfPFsqfNgDit11kP4JdXsqeRnJKm3xMqPKGZ4F7f7J8X"
+			]
+		},
+		"contracts/User/UserRoleRequest.sol": {
+			"keccak256": "0x3353ef5db9d4511453776e0b1f22785ec07872c958a9282dd6b29d2e360180aa",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://b3a2991889f4d82c4e6b05c2d027af40742c596b99bf3eb54e43ff5bcb5cd4ea",
+				"dweb:/ipfs/QmPfF3Hj26KQrjjgzhduRipkRFQ8ac6cBQjbjUy6jNkgeo"
+			]
+		}
+	},
+	"version": 1
+}

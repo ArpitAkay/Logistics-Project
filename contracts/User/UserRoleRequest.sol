@@ -1,0 +1,249 @@
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.24;
+
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "./Types.sol";
+import "./Errors.sol";
+import "./Events.sol";
+
+
+contract UserRoleRequest is Ownable{
+
+    Types.RoleRequest[] internal roleRequests;
+    mapping(address => Types.User) users;
+
+    constructor(address initialOwner) 
+    Ownable(initialOwner) 
+    {
+        Types.Role[] memory adminRole = new Types.Role[](1);
+        adminRole[0] = Types.Role.Admin;
+
+        Types.User memory admin = Types.User({
+            userName: "Admin",
+            userAddress: initialOwner,
+            role: adminRole,
+            geoHash: ""
+        });
+
+        users[initialOwner] = admin;
+    }
+
+    function generateRandomString(uint256 length) public view returns (string memory) {
+        bytes memory characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        bytes memory randomString = new bytes(length);
+        uint256 charLength = characters.length;
+
+        for (uint256 i = 0; i < length; i++) {
+            uint256 rand = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, i))) % charLength;
+            randomString[i] = characters[rand];
+        }
+        return string(randomString);
+    }
+
+    modifier checkUserExists(){
+        if(users[msg.sender].userAddress == address(0)){
+            revert Errors.UserNotRegistered({
+                userAddress: msg.sender,
+                errMsg: "User is not registered"
+            });
+        }
+        _;
+    }
+
+    modifier checkValidInput(string memory _userName, string memory _geoHash){
+        if(bytes(_userName).length <= 0){
+            revert Errors.InvalidInput({
+                userAddress: msg.sender,
+                errMsg: "Username required"
+            });
+        }
+        
+        if(bytes(_userName).length <= 0){
+            revert Errors.InvalidInput({
+                userAddress: msg.sender,
+                errMsg: "GeoHash required"
+            });
+        }
+        _;
+    }
+
+    modifier checkRoleRequest(Types.Role _requestedRole) {
+        if(_requestedRole == Types.Role.None){
+            revert Errors.InvalidInput({
+                userAddress: msg.sender,
+                errMsg: "Cannot request none role"
+            });
+        }
+        _;
+    }
+
+    function createUser(string memory _userName, string memory _geoHash) public checkValidInput(_userName,_geoHash) {
+        Types.Role[] memory noneRole = new Types.Role[](1);
+        noneRole[0] = Types.Role.None;
+
+
+        Types.User memory newUser = Types.User({
+            userName: _userName,
+            userAddress: msg.sender,
+            role: noneRole,
+            geoHash: _geoHash
+        });
+
+        users[msg.sender] = newUser;
+
+        emit Events.NewUserCreated(_userName, msg.sender, _geoHash);
+    }
+
+    function createRoleRequest(Types.Role _requestedRole) public checkUserExists checkRoleRequest(_requestedRole) {
+        string memory _requestId = generateRandomString(4);
+
+        Types.RoleRequest memory newRoleRequest = Types.RoleRequest({
+            requestId: _requestId,
+            applicantAddress: msg.sender,
+            requestedRole: _requestedRole,
+            requestStatus: Types.RequestStatus.Pending,
+            approverAddress: address(0)
+        });
+
+        roleRequests.push(newRoleRequest);
+
+        emit Events.NewRoleRequestCreated(_requestId, msg.sender, _requestedRole);
+    }
+
+    function getRoleRequests() public view returns(Types.RoleRequest[] memory){
+        return roleRequests;
+    }
+
+    function isUserRegistered(address _userAddr) public view returns(bool) {
+        if(bytes(users[_userAddr].userName).length > 0) {
+            return true;
+        }
+        return false;
+    }
+
+    function getRoleRequestByIdWithIndex(string memory _roleRequestId) public view returns(Types.RoleRequestWithIndexDto memory) {
+
+        for(uint i=0; i<roleRequests.length; i++){
+            if(keccak256(bytes(roleRequests[i].requestId)) == keccak256(bytes(_roleRequestId))){
+                return Types.RoleRequestWithIndexDto({roleRequest:roleRequests[i], index: i});
+            }
+        }
+      
+        revert Errors.RoleRequestNotFound({
+            userAddress: msg.sender,
+            errMsg: "Role Request not found",
+            requestId: _roleRequestId
+        });
+       
+    }
+
+    function approveOrRejectRoleRequest(string memory _roleRequestId, bool approve) public {
+        Types.Role[] memory approverRoles = users[msg.sender].role;
+
+        Types.RoleRequestWithIndexDto memory roleRequestWithIndex = getRoleRequestByIdWithIndex(_roleRequestId);
+
+        Types.RoleRequest memory roleRequest = roleRequestWithIndex.roleRequest;
+
+        if(!isApproverHavingPermission(approverRoles, roleRequest.requestedRole)) {
+            revert Errors.NotAuthorized({
+                userAddress: msg.sender,
+                errMsg: "You don't have permission to approve this request"
+            });
+        }
+
+        checkRoleRequestStatus(roleRequest); // Checking for already approved or rejected request
+
+        if(approve){
+            roleRequest.requestStatus = Types.RequestStatus.Approved;
+            roleRequest.approverAddress = msg.sender;
+
+            roleRequests[roleRequestWithIndex.index] = roleRequest;
+
+            addRoleToUser(roleRequest);
+        }
+
+        if(!approve) {
+            roleRequest.requestStatus = Types.RequestStatus.Rejected;
+            roleRequests[roleRequestWithIndex.index] = roleRequest;
+        }
+
+
+    }
+
+    function addRoleToUser(Types.RoleRequest memory roleRequest) internal view {
+        Types.User memory user = users[roleRequest.applicantAddress];
+        Types.Role[] memory updatedRoles = new Types.Role[](user.role.length + 1);
+        
+        
+        for (uint256 i = 0; i < user.role.length; i++) {
+            updatedRoles[i] = user.role[i];
+        }
+        
+        updatedRoles[user.role.length] = roleRequest.requestedRole;
+        
+        user.role = updatedRoles;
+    }
+
+    function checkRoleRequestStatus(Types.RoleRequest memory roleRequest) internal view {
+        if(roleRequest.requestStatus == Types.RequestStatus.Approved) {
+            revert Errors.AlreadyProcessedError({
+                userAddress: msg.sender,
+                errMsg: "Role request already approved",
+                requestId: roleRequest.requestId
+            });
+        }
+
+        if(roleRequest.requestStatus == Types.RequestStatus.Rejected) {
+            revert Errors.AlreadyProcessedError({
+                userAddress: msg.sender,
+                errMsg: "Role request already rejected",
+                requestId: roleRequest.requestId
+            });
+        }
+    }
+
+    function isApproverHavingPermission(Types.Role[] memory approverRoles,Types.Role requestedRole) internal pure returns (bool) {
+        if(requestedRole == Types.Role.Admin) {
+            for(uint i=0; i<approverRoles.length; i++){
+                if(approverRoles[i] == Types.Role.Admin) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        if(requestedRole == Types.Role.Shipper) {
+            for(uint i=0; i<approverRoles.length; i++){
+                if(approverRoles[i] == Types.Role.Admin 
+                        || approverRoles[i] == Types.Role.Shipper) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        if(requestedRole == Types.Role.Driver) {
+            for(uint i=0; i<approverRoles.length; i++){
+                if(approverRoles[i] == Types.Role.Admin 
+                        || approverRoles[i] == Types.Role.Shipper 
+                        || approverRoles[i] == Types.Role.Driver) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        if(requestedRole == Types.Role.Reciever) {
+            for(uint i=0; i<approverRoles.length; i++){
+                if(approverRoles[i] == Types.Role.None) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        return false;
+        
+    }
+}
