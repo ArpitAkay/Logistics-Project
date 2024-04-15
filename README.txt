@@ -1,1 +1,1 @@
-Logicstics Project :melting_face:
+Logicstics Project :smile:
