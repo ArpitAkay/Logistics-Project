@@ -513,7 +513,6 @@ contract ServiceRequest {
 
     function decideWinnerForDispute(string memory _serviceRequestId) external returns (Types.ServiceRequestInfo memory) {
         Types.ServiceRequestInfo memory serviceRequestInfo = disputedServiceRequest.decideWinner(_serviceRequestId);
-         disputedServiceRequest.getDisputedServiceRequestById(_serviceRequestId);
 
         if(serviceRequestInfo.status != Types.Status.DISPUTE_RESOLVED) {
             revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Voting on dispute is still in progress"});
@@ -522,6 +521,11 @@ contract ServiceRequest {
         Types.ServiceRequestResult memory serviceRequestResult = getServiceRequestById(_serviceRequestId);
         Types.ServiceRequestInfo memory request = serviceRequestResult.serviceRequest;
         uint256 index = serviceRequestResult.index;
+
+        address _addr = msg.sender;
+        if(_addr == request.shipperAddr || _addr == request.receiverAddr || _addr == request.driverAssigned) {
+            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Only shipper, receiver or driver of this service request can access this function"});
+        } 
 
         request.status = serviceRequestInfo.status;
         request.disputeWinner = serviceRequestInfo.disputeWinner;
