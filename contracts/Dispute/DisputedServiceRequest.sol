@@ -5,14 +5,26 @@ import "./Types.sol";
 import "./Events.sol";
 import "./Helpers.sol";
 import "./Errors.sol";
+import "./IUserRoleRequest.sol";
 
 contract DisputedServiceRequest {
+    IUserRoleRequest immutable userRoleRequest;
 
     // State variables
     Types.ServiceRequestInfo[] internal serviceRequestInfos;
 
     mapping (string => Types.VoteCount) voteCounts;
     mapping(string => address[]) internal peopleWhoAlreadyVoted;
+
+    constructor(address _userRoleRequest) {
+        userRoleRequest = IUserRoleRequest(_userRoleRequest);
+    }
+
+    modifier isValidUser(address _addr) {
+        // Check here address has any role other than None
+        userRoleRequest.hasNoneRole(_addr);
+        _;
+    }
 
     function saveDisutedServiceRequest(address from, Types.ServiceRequestInfo memory serviceRequestInfo) external {
         if(serviceRequestInfo.status != Types.Status.DISPUTE) {
@@ -32,7 +44,7 @@ contract DisputedServiceRequest {
         emit Events.DisutedSRSaved(from, serviceRequestInfo.serviceRequestId, serviceRequestInfo);
     }
 
-    function vote(string memory _serviceRequestId, Types.WhomToVote whomToVote) external {
+    function vote(string memory _serviceRequestId, Types.WhomToVote whomToVote) isValidUser(msg.sender) external {
         address[] memory addressesOfPeopleWhoAlreadyVoted = peopleWhoAlreadyVoted[_serviceRequestId];
  
         //Checking for people have already voted or not
@@ -42,10 +54,10 @@ contract DisputedServiceRequest {
             }
         }
 
-        Types.ServiceRequestResult memory serviceRequestResult = getServiceRequestById(_serviceRequestId);
+        Types.ServiceRequestResult memory serviceRequestResult = getDisputedServiceRequestByIdWithIndex(_serviceRequestId);
         Types.ServiceRequestInfo memory serviceRequestInfo = serviceRequestResult.serviceRequest;
         
-        string memory _driverGeoHash = getDriverGeoHash(serviceRequestInfo.driverAssigned);
+        string memory _driverGeoHash = userRoleRequest.getUserGeoHash(serviceRequestInfo.driverAssigned);
 
         if(!Helpers.compareGeoHash(_driverGeoHash, serviceRequestInfo.originLink) || !Helpers.compareGeoHash(_driverGeoHash, serviceRequestInfo.originLink)) {
             revert Errors.ServiceRequestOutOfRegion({ serviceRequestId : _serviceRequestId, message :"Service request not in your region" });
@@ -57,7 +69,7 @@ contract DisputedServiceRequest {
             if(voteCount.driverVote == voteCount.receiverVote && serviceRequestInfo.shipperAddr == msg.sender) {
                 increaseVote(_serviceRequestId, whomToVote);
                 peopleWhoAlreadyVoted[_serviceRequestId].push(msg.sender);
-                emit Events.VotingMessage(msg.sender, _serviceRequestId, "Voted successfully by shipper");
+                emit Events.VotingMessage(_serviceRequestId, "Voted successfully by shipper");
                 return;
             }
 
@@ -71,7 +83,7 @@ contract DisputedServiceRequest {
         peopleWhoAlreadyVoted[_serviceRequestId].push(msg.sender);
         increaseVote(_serviceRequestId, whomToVote);
 
-        emit Events.VotingMessage(msg.sender, _serviceRequestId, "Voted successfully");
+        emit Events.VotingMessage(_serviceRequestId, "Voted successfully");
     }
 
     function increaseVote(string memory _serviceRequestId, Types.WhomToVote whomToVote) internal {
@@ -82,7 +94,45 @@ contract DisputedServiceRequest {
         voteCounts[_serviceRequestId].totalVotesCounted = voteCounts[_serviceRequestId].driverVote + voteCounts[_serviceRequestId].receiverVote;
     }
 
-    function getServiceRequestById(string memory _serviceRequestId) internal view returns (Types.ServiceRequestResult memory) {
+    function decideWinner(string memory _serviceRequestId) external returns (Types.ServiceRequestInfo memory){
+        Types.ServiceRequestResult memory serviceRequestResult = getDisputedServiceRequestByIdWithIndex(_serviceRequestId);
+        Types.ServiceRequestInfo memory serviceRequestInfo = serviceRequestResult.serviceRequest;
+        uint256 index = serviceRequestResult.index;
+
+        Types.VoteCount memory voteCount = voteCounts[_serviceRequestId];
+
+        //Checking voting has ended or not
+        if(voteCount.totalVotesCounted < 5) {
+            revert Errors.VotingInProgress({ from: msg.sender, serviceRequestId: _serviceRequestId, message: "Voting is still in progress" });
+        }
+
+        //Deciding the winner
+        if(serviceRequestInfo.status == Types.Status.DISPUTE_RESOLVED) {
+            emit Events.VotingMessage(_serviceRequestId, serviceRequestInfo.disputeWinner);
+        }
+
+        else if(voteCount.driverVote > voteCount.receiverVote) {
+            serviceRequestInfos[index].status = Types.Status.DISPUTE_RESOLVED;
+            serviceRequestInfos[index].disputeWinner = "Hurray! Driver Wins";
+
+            emit Events.VotingMessage(_serviceRequestId, "Hurray! Driver Wins");
+        }
+        else if(voteCount.driverVote < voteCount.receiverVote) {
+            // call the function of user contract to deduct stars
+            userRoleRequest.deductStars(serviceRequestInfo.driverAssigned);        
+            serviceRequestInfos[index].status = Types.Status.DISPUTE_RESOLVED;
+            serviceRequestInfos[index].disputeWinner = "Hurray! Receiver Wins";
+
+            emit Events.VotingMessage(_serviceRequestId, "Hurray! Receiver Wins");
+        } else {
+            serviceRequestInfos[index].disputeWinner = "Draw, shipper needs to vote";
+            emit Events.VotingMessage(_serviceRequestId, "Draw, shipper needs to vote");
+        }
+
+        return serviceRequestInfo;
+    }
+
+    function getDisputedServiceRequestByIdWithIndex(string memory _serviceRequestId) internal view returns (Types.ServiceRequestResult memory) {
         Types.ServiceRequestResult memory serviceRequestResult;
 
         for(uint256 i=0; i<serviceRequestInfos.length; i++) {
@@ -97,7 +147,7 @@ contract DisputedServiceRequest {
     }
 
     function getAllDisputedServiceRequestInDriverArea() external view returns (Types.ServiceRequestInfo[] memory) {
-        string memory _geoHash = getGeoHashOfUser(msg.sender);
+        string memory _geoHash =  userRoleRequest.getUserGeoHash(msg.sender);
 
         Types.ServiceRequestInfo[] memory temp = new Types.ServiceRequestInfo[](serviceRequestInfos.length);
         uint256 count = 0;
@@ -118,13 +168,4 @@ contract DisputedServiceRequest {
 
         return allDisputeRequestInDriverArea;
     }
-
-    function getGeoHashOfUser(address _addr) internal pure returns (string memory) {
-        // Get the geohash of user from User contract
-        return "";
-    }
-
-    function getDriverGeoHash(address _addr) internal pure returns (string memory) {
-        return "";
-    } 
 }

@@ -7,4 +7,5 @@ library Errors {
     error SelfVoteNotAllowed(string serviceRequestId, string message);
     error ServiceRequestDoesNotExists(string serviceRequestId, string message);
     error ServiceRequestOutOfRegion(string serviceRequestId, string message);
+    error VotingInProgress(address from, string serviceRequestId, string message);
 }

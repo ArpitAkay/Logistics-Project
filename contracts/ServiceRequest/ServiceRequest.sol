@@ -9,44 +9,52 @@ import "./Events.sol";
 import "./Helpers.sol";
 import "./IGeekToken.sol";
 import "./IDisputedServiceRequest.sol";
+import "./IUserRoleRequest.sol";
 
 contract ServiceRequest {
     IGeekToken immutable geekToken; 
     IDisputedServiceRequest immutable disputedServiceRequest;
+    IUserRoleRequest immutable userRoleRequest;
 
     // State variables
     Types.ServiceRequestInfo[] internal serviceRequestInfos;
     mapping (string => Types.DriverInfoDto[]) peopleWhoAlreadyBidded;
 
-    constructor(address _geekToken, address _disputedServiceRequest) {
+    constructor(address _geekToken, address _disputedServiceRequest, address _userRoleRequest) {
         geekToken = IGeekToken(_geekToken);
         disputedServiceRequest = IDisputedServiceRequest(_disputedServiceRequest);
+        userRoleRequest = IUserRoleRequest(_userRoleRequest);
     }
 
     modifier hasRoleShipperAndReceiver(address _shipper, address _receiver) {
         // Check _shipper has role Shipper or Admin
         // Check _receiver has role Receiver or Admin
         // Check _shipper and _receiver are not same
+        userRoleRequest.hasRoleShipperAndReceiver(_shipper, _receiver);
         _;
     }
 
     modifier hasRoleShipper(address _addr) {
         // Check here address has role Shipper or Admin
+        userRoleRequest.hasRoleShipper(_addr);
         _;
     }
 
     modifier hasRoleDriver(address _addr) {
         // Check here address has role Driver or Admin
+        userRoleRequest.hasRoleDriver(_addr);
         _;
     }
 
     modifier hasRoleReceiver(address _addr) {
         // Check here address has role Receiver or Admin
+        userRoleRequest.hasRoleReceiver(_addr);
         _;
     }
 
     modifier isValidUser(address _addr) {
         // Check here address has any role other than None
+        userRoleRequest.isUserRegistered(_addr);
         _;
     }
 
@@ -74,7 +82,8 @@ contract ServiceRequest {
             requestedDeliveryTime: _serviceRequestInfoDto.requestedDeliveryTime,
             auctionTime: _serviceRequestInfoDto.status == Types.ServiceRequestInitialStatus.READY_FOR_AUCTION ? block.timestamp + (1 minutes * _serviceRequestInfoDto.auctionTime) : _serviceRequestInfoDto.auctionTime,
             driverAssigned: address(0),
-            status: _serviceRequestInfoDto.status == Types.ServiceRequestInitialStatus.READY_FOR_AUCTION ? Types.Status.READY_FOR_AUCTION : Types.Status.DRAFT
+            status: _serviceRequestInfoDto.status == Types.ServiceRequestInitialStatus.READY_FOR_AUCTION ? Types.Status.READY_FOR_AUCTION : Types.Status.DRAFT,
+            disputeWinner: ""
         });
 
         // Adding newly created service request in serviceRequestInfos
@@ -189,7 +198,7 @@ contract ServiceRequest {
             revert Errors.AuctionEnded({ serviceRequestId: _serviceRequestId, message: "Auction ended already" });
         }
 
-        string memory _driverGeoHash = getDriverGeoHash(msg.sender);
+        string memory _driverGeoHash = userRoleRequest.getUserGeoHash(msg.sender);
 
         // Comparing geohash of originLink and destinationLink with driverGeoHash
         if(!Helpers.compareGeoHash(_driverGeoHash, serviceRequestInfo.originLink) || !Helpers.compareGeoHash(_driverGeoHash, serviceRequestInfo.destinationLink)) {
@@ -228,10 +237,6 @@ contract ServiceRequest {
 
         emit Events.BiddedSuccessfully(_serviceRequestId, _serviceFee, msg.sender);
     }
-
-    function getDriverGeoHash(address _addr) internal pure returns (string memory) {
-        return "";
-    } 
 
     // Check function for person has already bidded or not
     function checkAlreadyBidded(address _bidder, Types.DriverInfoDto[] memory _driverInfosWhoHasAlreadyBidded) internal pure {
@@ -409,6 +414,7 @@ contract ServiceRequest {
             } else if(acceptance == Types.Acceptance.CONDITIONAL) {
                 serviceRequestInfos[index].status = _status;
                 refundCargoValue(_serviceRequestId, serviceRequestInfo.driverAssigned);
+                refundServiceFeeToShipperAndDriver(serviceRequestInfo);
                 geekToken.transferTokens(serviceRequestInfo.driverAssigned, serviceRequestInfo.cargoInsurableValue, Types.Acceptance.CONDITIONAL);
             } else {
                 serviceRequestInfos[index].status = Types.Status.DISPUTE;
@@ -423,6 +429,13 @@ contract ServiceRequest {
             revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Receiver can only update status : DELIVERED"});
         }
     } 
+
+    function refundServiceFeeToShipperAndDriver(Types.ServiceRequestInfo memory serviceRequestInfo) internal {
+        if(address(this).balance >= serviceRequestInfo.serviceFee) {
+            payable(serviceRequestInfo.driverAssigned).transfer(serviceRequestInfo.serviceFeeByBidder);
+            payable(serviceRequestInfo.shipperAddr).transfer(serviceRequestInfo.serviceFee - serviceRequestInfo.serviceFeeByBidder);
+        }
+    }
 
     // Retrieving all service request in driver's geo hash
     function getAllServiceRequestInfosInGeoHash(string memory _geoHash) external view returns (Types.ServiceRequestInfo[] memory) {
@@ -497,4 +510,22 @@ contract ServiceRequest {
 
         revert Errors.ServiceRequestDoesNotExists({ serviceRequestId: _serviceRequestId, message: "Service request does not exists"});
     }
+
+    function decideWinnerForDispute(string memory _serviceRequestId) external returns (Types.ServiceRequestInfo memory){
+        Types.ServiceRequestInfo memory serviceRequestInfo = disputedServiceRequest.decideWinner(_serviceRequestId);
+         disputedServiceRequest.getDisputedServiceRequestById(_serviceRequestId);
+
+        if(serviceRequestInfo.status != Types.Status.DISPUTE_RESOLVED) {
+            revert("");
+        }
+
+        Types.ServiceRequestResult memory serviceRequestResult = getServiceRequestById(_serviceRequestId);
+        Types.ServiceRequestInfo memory request = serviceRequestResult.serviceRequest;
+        uint256 index = serviceRequestResult.index;
+
+        request.status = serviceRequestInfo.status;
+        request.disputeWinner = serviceRequestInfo.disputeWinner;
+
+        return request;
+    } 
 }
