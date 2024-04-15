@@ -24,6 +24,8 @@ library Types {
         string userName;
         address userAddress;
         string geoHash;
+        uint starsInInt;
+        string starsInString;
         Role[] role; 
     }
 
