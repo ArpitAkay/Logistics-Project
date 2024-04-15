@@ -34,7 +34,6 @@ library Types {
 
     struct ServiceRequestInfoDto {
         string description;
-        address shipperAddr;
         address receiverAddr;
         int256 originLatitude;
         int256 originLongitude;

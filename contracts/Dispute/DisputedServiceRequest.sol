@@ -7,6 +7,7 @@ import "./Helpers.sol";
 import "./Errors.sol";
 import "./IUserRoleRequest.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "hardhat/console.sol";
 
 contract DisputedServiceRequest is Ownable {
     IUserRoleRequest immutable userRoleRequest;
@@ -14,7 +15,7 @@ contract DisputedServiceRequest is Ownable {
     // State variables
     Types.ServiceRequestInfo[] internal serviceRequestInfos;
 
-    mapping (string => Types.VoteCount) voteCounts;
+    mapping (string => Types.VoteCount) public voteCounts;
     mapping(string => address[]) internal peopleWhoAlreadyVoted;
 
     address serviceRequestAddr = address(0);
@@ -26,7 +27,7 @@ contract DisputedServiceRequest is Ownable {
 
     modifier isValidUser(address _addr) {
         // Check here address has any role other than None
-        userRoleRequest.hasNoneRole(_addr);
+        userRoleRequest.isUserRegistered(_addr);
         _;
     }
 
@@ -46,13 +47,15 @@ contract DisputedServiceRequest is Ownable {
         serviceRequestAddr = _addr;
     } 
 
-    function saveDisutedServiceRequest(address from, Types.ServiceRequestInfo memory serviceRequestInfo) isServiceRequestContract(msg.sender) external {
+    function saveDisputedServiceRequest(address from, Types.ServiceRequestInfo memory serviceRequestInfo) isServiceRequestContract(msg.sender) external {
         if(serviceRequestInfo.status != Types.Status.DISPUTE) {
             emit Events.OnlyDisputedSRCanBeSaved(from, serviceRequestInfo);
             return;
         }
 
+        console.log("Save dispute service request");
         serviceRequestInfos.push(serviceRequestInfo);
+        console.log("Save dispute service request2");
         Types.VoteCount memory voteCount = Types.VoteCount({
             driverVote: 0,
             receiverVote: 0,
@@ -61,7 +64,7 @@ contract DisputedServiceRequest is Ownable {
 
         voteCounts[serviceRequestInfo.serviceRequestId] = voteCount;
 
-        emit Events.DisutedSRSaved(from, serviceRequestInfo.serviceRequestId, serviceRequestInfo);
+        emit Events.DisputedSRSaved(from, serviceRequestInfo.serviceRequestId, serviceRequestInfo);
     }
 
     function vote(string memory _serviceRequestId, Types.WhomToVote whomToVote) isValidUser(msg.sender) external {

@@ -59,7 +59,7 @@ contract ServiceRequest {
     }
 
     function createServiceRequest(Types.ServiceRequestInfoDto memory _serviceRequestInfoDto) external payable 
-    hasRoleShipperAndReceiver(_serviceRequestInfoDto.shipperAddr, _serviceRequestInfoDto.receiverAddr)
+    hasRoleShipperAndReceiver(msg.sender, _serviceRequestInfoDto.receiverAddr)
     {
         checkValidationsForServiceRequestCreation(_serviceRequestInfoDto, msg.value);
 
@@ -67,7 +67,7 @@ contract ServiceRequest {
         Types.ServiceRequestInfo memory serviceRequestInfo = Types.ServiceRequestInfo({
             serviceRequestId: _serviceRequestId,
             description: _serviceRequestInfoDto.description,
-            shipperAddr: _serviceRequestInfoDto.shipperAddr,
+            shipperAddr: msg.sender,
             receiverAddr: _serviceRequestInfoDto.receiverAddr,
             originLatitude: _serviceRequestInfoDto.originLatitude,
             originLongitude: _serviceRequestInfoDto.originLongitude,
@@ -96,7 +96,7 @@ contract ServiceRequest {
     function checkValidationsForServiceRequestCreation(Types.ServiceRequestInfoDto memory _serviceRequestInfoDto, uint256 _serviceFee) internal view {
         // Validation check for description of product to deliver
         if(bytes(_serviceRequestInfoDto.description).length == 0) {
-            revert Errors.InvalidDescription({ description: _serviceRequestInfoDto.description, message: "Empty description value"});
+            revert Errors.InvalidDescription({ description: _serviceRequestInfoDto.description, message: "Description value cannot be empty"});
         }
 
         // Validation check for origin latitude, longitude and destination latitude, longitude of product to deliver
@@ -109,13 +109,13 @@ contract ServiceRequest {
         checkValidGeoHash(_serviceRequestInfoDto.destinationLink);
 
         // Checking cargo insurable value is provided or not
-        if(_serviceRequestInfoDto.cargoInsurableValue == 0) {
-            revert Errors.InvalidProductValue({ value: _serviceRequestInfoDto.cargoInsurableValue, message: "Cargo insurance value not valid"});
+        if(_serviceRequestInfoDto.cargoInsurableValue <= 0) {
+            revert Errors.InvalidProductValue({ value: _serviceRequestInfoDto.cargoInsurableValue, message: "Cargo insurance value cannot be less than or equal to zero"});
         }
 
         // Checking service fee is provided or not
-        if(_serviceFee == 0) {
-            revert Errors.InvalidProductValue({ value: _serviceFee, message: "Service value not valid"});
+        if(_serviceFee <= 0) {
+            revert Errors.InvalidProductValue({ value: _serviceFee, message: "Service value cannot be less than or equal to zero"});
         }
 
         // Checking pick up time, delivery time and auction time are valid or not
@@ -145,7 +145,7 @@ contract ServiceRequest {
     function checkValidTimmings(uint256 _reqestedPickupTime, uint256 _requestedDeliveryTime, uint256 _auctionStartTime) internal view {
         // Checking auction start time has been provided or not
         if(_auctionStartTime <= 0) {
-            revert Errors.InvalidTimmings({ timestamp: _auctionStartTime, message: "Please provide valid auction time"});
+            revert Errors.InvalidTimmings({ timestamp: _auctionStartTime, message: "Auction time cannot be less than or equal to zero"});
         }
 
         // Checking requested pickup time is in the future
@@ -190,29 +190,29 @@ contract ServiceRequest {
 
         // Checking bidding start time i.e auctionStartTime started or not
         if(serviceRequestInfo.status != Types.Status.READY_FOR_AUCTION) {
-            revert Errors.AuctionNotStarted({ serviceRequestId: _serviceRequestId, message: "Service request is not in auction right now"});
+            revert Errors.AuctionNotStarted({ serviceRequestId: _serviceRequestId, message: "Service request is not ready for auction yet"});
         }
 
         // Checking auction has already ended or not
         if(block.timestamp >= serviceRequestInfo.auctionTime) {
-            revert Errors.AuctionEnded({ serviceRequestId: _serviceRequestId, message: "Auction ended already" });
+            revert Errors.AuctionEnded({ serviceRequestId: _serviceRequestId, message: "Auction for service request has ended already" });
         }
 
         string memory _driverGeoHash = userRoleRequest.getUserGeoHash(msg.sender);
 
         // Comparing geohash of originLink and destinationLink with driverGeoHash
         if(!Helpers.compareGeoHash(_driverGeoHash, serviceRequestInfo.originLink) || !Helpers.compareGeoHash(_driverGeoHash, serviceRequestInfo.destinationLink)) {
-            revert Errors.ServiceRequestOutOfRegion({ serviceRequestId: _serviceRequestId, message: "Service request not in your region"});
+            revert Errors.ServiceRequestOutOfRegion({ serviceRequestId: _serviceRequestId, message: "Service request is not in your region"});
         }
 
         // Checking msg.value is equal to cargo insurable value
         if(msg.value != serviceRequestInfo.cargoInsurableValue * (10 ** 18)) {
-            revert Errors.InvalidCargoInsuranceValue({ cargoInsuranceValue: msg.value, message: "Please send valid cargo insurable value"});
+            revert Errors.InvalidCargoInsuranceValue({ cargoInsuranceValue: msg.value, message: "Cargo insurable value should be equal to Product value"});
         }
 
         // Checking service fee with cargo insurable value
         if(_serviceFee <= 0 || (_serviceFee + msg.value) >= (serviceRequestInfo.serviceFee + (serviceRequestInfo.cargoInsurableValue  * (10 ** 18)))) {
-            revert Errors.InvalidServiceFee({ serviceFee: _serviceFee, message: "Please send valid service fee"});
+            revert Errors.InvalidServiceFee({ serviceFee: _serviceFee, message: "Service Fee should be less than the service fee provide by shipper"});
         }
 
         // Getting address of people who already voted so to avoid re voting
@@ -264,14 +264,14 @@ contract ServiceRequest {
             if(serviceRequestInfo.driverAssigned != address(0)) {
                 if(block.timestamp >= serviceRequestInfo.auctionTime)
                     serviceRequestInfos[index].status = Types.Status.DRIVER_ASSIGNED;
-                revert Errors.ServiceRequestCannotBeCancelled({ serviceRequestId: _serviceRequestId, message: "Service request cannot be cancelled, as driver is assigned"});
+                revert Errors.ServiceRequestCannotBeCancelled({ serviceRequestId: _serviceRequestId, message: "Service request cannot be cancelled, as driver is already assigned"});
             }
 
             // Cancelling service request
             serviceRequestInfos[index].status = Types.Status.CANCELLED;
             emit Events.ServiceRequestCancelled(_serviceRequestId, msg.sender);
         } else {
-            revert Errors.ServiceRequestCannotBeCancelled({ serviceRequestId: _serviceRequestId, message: "Service request cannot be cancelled"});
+            revert Errors.ServiceRequestCannotBeCancelled({ serviceRequestId: _serviceRequestId, message: "Service request cannot be cancelled now"});
         }
     }
 
@@ -366,31 +366,31 @@ contract ServiceRequest {
                 serviceRequestInfos[index].status = _status;
                 emit Events.UpdatedSRStatus(_serviceRequestId, "Updated service request successfully");
             } else {
-                revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "DRIVER_ARRIVED_AT_ORIGIN status can only be updated when READY_FOR_PICKUP status"});
+                revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "DRIVER_ARRIVED_AT_ORIGIN status can only be updated when service request is in READY_FOR_PICKUP status"});
             }
         } else if(serviceRequestInfo.status == Types.Status.DRIVER_ARRIVED_AT_ORIGIN) {
             if(_status == Types.Status.PARCEL_PICKED_UP) {
                 serviceRequestInfos[index].status = _status;
                 emit Events.UpdatedSRStatus(_serviceRequestId, "Updated service request successfully");
             } else {
-                revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "PARCEL_PICKED_UP status can only be updated when DRIVER_ARRIVED_AT_ORIGIN status"});
+                revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "PARCEL_PICKED_UP status can only be updated when service request is in DRIVER_ARRIVED_AT_ORIGIN status"});
             }
         } else if(serviceRequestInfo.status == Types.Status.PARCEL_PICKED_UP) {
             if(_status == Types.Status.OUT_FOR_DELIVERY) {
                 serviceRequestInfos[index].status = _status;
                 emit Events.UpdatedSRStatus(_serviceRequestId, "Updated service request successfully");
             } else {
-                revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "OUT_FOR_DELIVERY status can only be updated when PARCEL_PICKED_UP status"});
+                revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "OUT_FOR_DELIVERY status can only be updated when service request is in PARCEL_PICKED_UP status"});
             }
         } else if(serviceRequestInfo.status == Types.Status.OUT_FOR_DELIVERY) {
             if(_status == Types.Status.DRIVER_ARRIVED_AT_DESTINATION) {
                 serviceRequestInfos[index].status = _status;
                 emit Events.UpdatedSRStatus(_serviceRequestId, "Updated service request successfully");
             } else {
-                revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "DRIVER_ARRIVED_AT_DESTINATION status can only be updated when OUT_FOR_DELIVERY status"});
+                revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "DRIVER_ARRIVED_AT_DESTINATION status can only be updated when service request is in OUT_FOR_DELIVERY status"});
             }
         } else {
-            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Driver can only update status : DRIVER_ARRIVED_AT_ORIGIN, PARCEL_PICKED_UP, OUT_FOR_DELIVERY, DRIVER_ARRIVED_AT_DESTINATION"});
+            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Driver can update only DRIVER_ARRIVED_AT_ORIGIN, PARCEL_PICKED_UP, OUT_FOR_DELIVERY, DRIVER_ARRIVED_AT_DESTINATION"});
         }
     }
 
@@ -420,7 +420,7 @@ contract ServiceRequest {
                 serviceRequestInfos[index].status = Types.Status.DISPUTE;
 
                 // send service request to dispute contract
-                disputedServiceRequest.saveDisutedServiceRequest(address(this), serviceRequestInfo);
+                disputedServiceRequest.saveDisputedServiceRequest(address(this), serviceRequestInfo);
                 geekToken.transferTokens(serviceRequestInfo.driverAssigned, serviceRequestInfo.cargoInsurableValue, Types.Acceptance.UNCONDITIONAL);
             }
 
@@ -515,7 +515,7 @@ contract ServiceRequest {
         Types.ServiceRequestInfo memory serviceRequestInfo = disputedServiceRequest.decideWinner(_serviceRequestId);
 
         if(serviceRequestInfo.status != Types.Status.DISPUTE_RESOLVED) {
-            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Voting on dispute is still in progress"});
+            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Voting on dispute service request is still in progress"});
         }
 
         Types.ServiceRequestResult memory serviceRequestResult = getServiceRequestById(_serviceRequestId);
@@ -524,11 +524,11 @@ contract ServiceRequest {
 
         address _addr = msg.sender;
         if(_addr == request.shipperAddr || _addr == request.receiverAddr || _addr == request.driverAssigned) {
-            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Only shipper, receiver or driver of this service request can access this function"});
-        } 
+            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Only shipper, receiver or driver of this service request can decide winner for dispute request"});
+        }
 
-        request.status = serviceRequestInfo.status;
-        request.disputeWinner = serviceRequestInfo.disputeWinner;
+        serviceRequestInfos[index].status = serviceRequestInfo.status;
+        serviceRequestInfos[index].disputeWinner = serviceRequestInfo.disputeWinner;
 
         return request;
     } 

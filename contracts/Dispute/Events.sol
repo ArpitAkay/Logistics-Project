@@ -5,6 +5,6 @@ import "./Types.sol";
 
 library Events {
     event OnlyDisputedSRCanBeSaved(address from, Types.ServiceRequestInfo serviceRequestInfo);
-    event DisutedSRSaved(address from, string serviceRequestId, Types.ServiceRequestInfo serviceRequestInfo);
+    event DisputedSRSaved(address from, string serviceRequestId, Types.ServiceRequestInfo serviceRequestInfo);
     event VotingMessage(string serviceRequestId, string message);
 }

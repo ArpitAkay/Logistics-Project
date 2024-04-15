@@ -66,7 +66,7 @@ contract GeekToken is ERC20, ERC20Burnable, ERC20Pausable, Ownable {
 
     function transferTokens(address to, uint256 cargoInsurableValue, Types.Acceptance acceptance) external {
         uint256 tokensToReward = tokenReward(cargoInsurableValue, acceptance);
-        transfer(to, tokensToReward);
+        _transfer(owner(), to, tokensToReward);
 
         emit Events.TransferedTokens(address(this), to, tokensToReward);
     }

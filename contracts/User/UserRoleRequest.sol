@@ -15,7 +15,7 @@ contract UserRoleRequest is Ownable{
     IDrivingLicenseNFT immutable drivingLicenseNFT;
 
     Types.RoleRequest[] internal roleRequests;
-    mapping(address => Types.User) users;
+    mapping(address => Types.User) public users;
 
     constructor(address initialOwner, address drivingLicenseNFTAddress) 
     Ownable(initialOwner) 
@@ -42,7 +42,7 @@ contract UserRoleRequest is Ownable{
         uint256 charLength = characters.length;
 
         for (uint256 i = 0; i < length; i++) {
-            uint256 rand = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, i))) % charLength;
+            uint256 rand = uint256(keccak256(abi.encodePacked(block.timestamp, blockhash(block.number), i))) % charLength;
             randomString[i] = characters[rand];
         }
         return string(randomString);
@@ -66,7 +66,7 @@ contract UserRoleRequest is Ownable{
             });
         }
         
-        if(bytes(_userName).length <= 0){
+        if(bytes(_geoHash).length <= 0){
             revert Errors.InvalidInput({
                 userAddress: msg.sender,
                 errMsg: "GeoHash required"
@@ -83,6 +83,16 @@ contract UserRoleRequest is Ownable{
     }
 
     modifier checkRoleRequest(Types.Role _requestedRole) {
+        Types.Role[] memory userRoles = users[msg.sender].role;
+        for(uint i=0; i< userRoles.length; i++) {
+            if(userRoles[i] == _requestedRole){
+                revert Errors.InvalidInput({
+                    userAddress: msg.sender,
+                    errMsg: "You already have that role"
+                });
+            }
+        }
+
         if(_requestedRole == Types.Role.None){
             revert Errors.InvalidInput({
                 userAddress: msg.sender,
@@ -161,7 +171,7 @@ contract UserRoleRequest is Ownable{
 
         Types.RoleRequest memory roleRequest = roleRequestWithIndex.roleRequest;
 
-        if(!isApproverHavingPermission(approverRoles, roleRequest.requestedRole)) {
+        if(!isApproverHavingPermission(approverRoles, roleRequest)) {
             revert Errors.NotAuthorized({
                 userAddress: msg.sender,
                 errMsg: "You don't have permission to approve this request"
@@ -187,7 +197,7 @@ contract UserRoleRequest is Ownable{
 
     }
 
-    function addRoleToUser(Types.RoleRequest memory roleRequest) internal view {
+    function addRoleToUser(Types.RoleRequest memory roleRequest) internal {
         Types.User memory user = users[roleRequest.applicantAddress];
 
         Types.Role[] memory userRoles = user.role;
@@ -196,6 +206,7 @@ contract UserRoleRequest is Ownable{
             Types.Role[] memory updatedRoles = new Types.Role[](1);
             updatedRoles[0] = roleRequest.requestedRole;
             user.role = updatedRoles;
+            users[roleRequest.applicantAddress] = user;
         } else {
             Types.Role[] memory updatedRoles = new Types.Role[](user.role.length + 1);
             
@@ -207,6 +218,7 @@ contract UserRoleRequest is Ownable{
             updatedRoles[user.role.length] = roleRequest.requestedRole;
             
             user.role = updatedRoles;
+            users[roleRequest.applicantAddress] = user;
         }
     }
 
@@ -228,7 +240,13 @@ contract UserRoleRequest is Ownable{
         }
     }
 
-    function isApproverHavingPermission(Types.Role[] memory approverRoles,Types.Role requestedRole) internal pure returns (bool) {
+    function isApproverHavingPermission(Types.Role[] memory approverRoles,Types.RoleRequest memory roleRequest) internal view returns (bool) {
+        if(msg.sender == roleRequest.applicantAddress) {
+            revert Errors.NotAuthorized({userAddress:msg.sender,errMsg:"Self approve or reject is not allowed"});
+        }
+
+        Types.Role requestedRole = roleRequest.requestedRole;
+
         if(requestedRole == Types.Role.Admin) {
             for(uint i=0; i<approverRoles.length; i++){
                 if(approverRoles[i] == Types.Role.Admin) {
@@ -276,7 +294,8 @@ contract UserRoleRequest is Ownable{
         if(bytes(users[_userAddr].userName).length > 0) {
             return true;
         }
-        return false;
+        
+        revert Errors.UserNotRegistered(_userAddr, "User does not exists");
     }
 
     function getUserGeoHash(address _addr) external view returns (string memory) {
