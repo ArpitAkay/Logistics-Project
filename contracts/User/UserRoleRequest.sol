@@ -3,6 +3,7 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "./Types.sol";
 import "./Errors.sol";
 import "./Events.sol";
@@ -23,7 +24,9 @@ contract UserRoleRequest is Ownable{
             userName: "Admin",
             userAddress: initialOwner,
             role: adminRole,
-            geoHash: ""
+            geoHash: "",
+            starsInInt: 50,
+            starsInString: "50"
         });
 
         users[initialOwner] = admin;
@@ -87,7 +90,9 @@ contract UserRoleRequest is Ownable{
             userName: _userName,
             userAddress: msg.sender,
             role: noneRole,
-            geoHash: _geoHash
+            geoHash: _geoHash,
+            starsInInt: 50,
+            starsInString: "50"
         });
 
         users[msg.sender] = newUser;
@@ -166,16 +171,25 @@ contract UserRoleRequest is Ownable{
 
     function addRoleToUser(Types.RoleRequest memory roleRequest) internal view {
         Types.User memory user = users[roleRequest.applicantAddress];
-        Types.Role[] memory updatedRoles = new Types.Role[](user.role.length + 1);
-        
-        
-        for (uint256 i = 0; i < user.role.length; i++) {
-            updatedRoles[i] = user.role[i];
+
+        Types.Role[] memory userRoles = user.role;
+
+        if(userRoles.length == 1 && userRoles[0] == Types.Role.None){
+            Types.Role[] memory updatedRoles = new Types.Role[](1);
+            updatedRoles[0] = roleRequest.requestedRole;
+            user.role = updatedRoles;
+        } else {
+            Types.Role[] memory updatedRoles = new Types.Role[](user.role.length + 1);
+            
+            
+            for (uint i = 0; i < user.role.length; i++) {
+                updatedRoles[i] = user.role[i];
+            }
+            
+            updatedRoles[user.role.length] = roleRequest.requestedRole;
+            
+            user.role = updatedRoles;
         }
-        
-        updatedRoles[user.role.length] = roleRequest.requestedRole;
-        
-        user.role = updatedRoles;
     }
 
     function checkRoleRequestStatus(Types.RoleRequest memory roleRequest) internal view {
@@ -329,6 +343,35 @@ contract UserRoleRequest is Ownable{
 
         if(!isReceiver) {
             revert Errors.NotAuthorized({userAddress : _addr, errMsg :"User address provided doesn't have receiver or admin role"});
+        }
+    }
+
+    function hasNoneRole(address _addr) external view {
+        Types.Role[] memory userRoles = users[_addr].role;
+
+        bool isNoneRole = false;
+
+        for(uint i=0; i<userRoles.length; i++) {
+            if(userRoles[i] == Types.Role.None) {
+                isNoneRole = true;
+                break;
+            }
+        }
+
+        if(isNoneRole) {
+            revert Errors.NotAuthorized({userAddress : _addr, errMsg :"User address provided have none role"});
+        }
+    }
+
+    function deductStars(address _addr) external  {
+        Types.User memory user = users[_addr];
+        uint intStars = user.starsInInt;
+        intStars -= 1;
+        if(intStars >= 0) {
+            users[_addr].starsInInt = intStars;
+            uint rem = intStars % 10;
+            uint quot = intStars / 10;
+            users[_addr].starsInString = string(abi.encodePacked(Strings.toString(quot), ".", Strings.toString(rem)));
         }
     }
 
