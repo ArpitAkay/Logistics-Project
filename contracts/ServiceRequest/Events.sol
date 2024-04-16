@@ -11,5 +11,5 @@ library Events {
     event AuctionResult(string serviceRequestId, string message);
     event UpdatedSRStatus(string serviceRequestId, string message);
     event CargoValueRefunded(address from, address to, uint256 cargoAmountValue);
-    event DisputedSRWinner(string serviceRequestId, string message);
+    event DisputedSRResult(string serviceRequestId, string message);
 }

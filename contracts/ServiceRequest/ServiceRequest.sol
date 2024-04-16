@@ -552,14 +552,14 @@ contract ServiceRequest {
             refundCargoValueToDriver(serviceRequestInfo.serviceRequestId, serviceRequestInfo.driverAssigned);
             refundServiceFeeToShipperAndDriver(serviceRequestInfo);
 
-            emit Events.DisputedSRWinner(_serviceRequestId, "Driver has won");
+            emit Events.DisputedSRResult(_serviceRequestId, "Driver has won");
         } else if(Helpers.compareStrings(serviceRequestInfo.disputeWinner, "RECEIVER")) {
             refundCargoValueToReceiver(serviceRequestInfo.receiverAddr, serviceRequestInfo.cargoInsurableValue);
             refundServiceFeeToShipperAndDriver(serviceRequestInfo);
 
-            emit Events.DisputedSRWinner(_serviceRequestId, "Receiver has won");
+            emit Events.DisputedSRResult(_serviceRequestId, "Receiver has won");
         } else {
-            emit Events.DisputedSRWinner(_serviceRequestId, "Draw, Shipper has special access to vote for breaking the tie");
+            emit Events.DisputedSRResult(_serviceRequestId, "Draw, Shipper has special access to vote for breaking the tie");
         }
     } 
 }

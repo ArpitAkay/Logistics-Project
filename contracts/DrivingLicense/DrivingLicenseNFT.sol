@@ -13,14 +13,13 @@ import "./Errors.sol";
 
 
 contract DrivingLicenseNFT is ERC721, ERC721Enumerable, ERC721Pausable, Ownable, ERC721Burnable {
-    bool internal publicMintOpen = false;
+    bool internal publicMintOpen = true;
 
     uint256 private _nextTokenId;
     uint256 internal publicMintPrice = 0.01 ether;
     uint256 internal maxSupply = 200;
 
     mapping (uint256 => Types.DrivingLicenseInfo) internal drivingLicenseInfo;
-    mapping (address => bool) internal peopleWhoAlreadyMintedNft;
 
     constructor(address initialOwner)
         ERC721("DrivingLicense", "DL")
@@ -56,8 +55,7 @@ contract DrivingLicenseNFT is ERC721, ERC721Enumerable, ERC721Pausable, Ownable,
     }
 
     function internalMint(address to) internal returns (uint256) {
-        require(!peopleWhoAlreadyMintedNft[msg.sender], "You have already minted driving NFT");
-        peopleWhoAlreadyMintedNft[msg.sender] = true;
+        require(balanceOf(to) == 0, "You have already minted driving NFT");
         require(totalSupply() < maxSupply, "We sold out");
         uint256 tokenId = _nextTokenId++;
         _safeMint(to, tokenId);
@@ -65,17 +63,13 @@ contract DrivingLicenseNFT is ERC721, ERC721Enumerable, ERC721Pausable, Ownable,
     }
 
     function burn(uint256 _tokenId) public override  {
-        address _addr = ownerOf(_tokenId);
         super.burn(_tokenId);
         delete drivingLicenseInfo[_tokenId];
-        peopleWhoAlreadyMintedNft[_addr] = false;
     }
 
     function burnViaOwner(uint256 _tokenId) public onlyOwner {
-        address _addr = ownerOf(_tokenId);
         super._burn(_tokenId);
         delete drivingLicenseInfo[_tokenId];
-        peopleWhoAlreadyMintedNft[_addr] = false;
     }
 
     function validateNFT(address _addr) external view returns (bool) {

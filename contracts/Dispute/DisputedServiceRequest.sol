@@ -152,7 +152,7 @@ contract DisputedServiceRequest is Ownable {
         return serviceRequestInfo;
     }
 
-    function getDisputedServiceRequestByIdWithIndex(string memory _serviceRequestId) public view returns (Types.ServiceRequestResult memory) {
+    function getDisputedServiceRequestByIdWithIndex(string memory _serviceRequestId) internal view returns (Types.ServiceRequestResult memory) {
         Types.ServiceRequestResult memory serviceRequestResult;
 
         for(uint256 i=0; i<serviceRequestInfos.length; i++) {

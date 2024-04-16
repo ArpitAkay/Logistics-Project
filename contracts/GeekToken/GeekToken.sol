@@ -27,7 +27,7 @@ contract GeekToken is ERC20, ERC20Burnable, ERC20Pausable, Ownable {
         _;
     }
 
-    function updateServiceRequestAddr(address _addr) external onlyOwner {
+    function updateServiceRequestAddress(address _addr) external onlyOwner {
         serviceRequestAddr = _addr;
     }
 
