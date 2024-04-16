@@ -290,12 +290,10 @@ contract UserRoleRequest is Ownable{
         
     }
 
-    function isUserRegistered(address _userAddr) external view returns(bool) {
+    function isUserRegistered(address _userAddr) external view {
         if(bytes(users[_userAddr].userName).length > 0) {
-            return true;
+            revert Errors.UserNotRegistered(_userAddr, "User does not exists");
         }
-        
-        revert Errors.UserNotRegistered(_userAddr, "User does not exists");
     }
 
     function getUserGeoHash(address _addr) external view returns (string memory) {

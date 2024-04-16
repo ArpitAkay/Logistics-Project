@@ -19,4 +19,5 @@ library Errors {
     error AlreadyBidded(address bidder, string message);
     error ServiceRequestCannotBeCancelled(string serviceRequestId, string message);
     error AccessDenied(string serviceRequestId, string message);
+    error SRDisputeAlreadyResolved(string serviceRequestId, string message);
 }

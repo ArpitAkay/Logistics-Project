@@ -56,7 +56,8 @@ library Types {
     struct DriverInfoDto {
         uint256 serviceFee;
         address driverAddr;
-        bool isRefunded;
+        bool cargoValueRefunded;
+        bool serviceFeeRefunded;
     }
 
     enum Acceptance {

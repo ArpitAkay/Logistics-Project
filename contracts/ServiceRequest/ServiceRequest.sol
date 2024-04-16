@@ -10,6 +10,7 @@ import "./Helpers.sol";
 import "./IGeekToken.sol";
 import "./IDisputedServiceRequest.sol";
 import "./IUserRoleRequest.sol";
+import "hardhat/console.sol";
 
 contract ServiceRequest {
     IGeekToken immutable geekToken; 
@@ -75,7 +76,7 @@ contract ServiceRequest {
             destinationLongitude: _serviceRequestInfoDto.destinationLongitude,
             originLink: _serviceRequestInfoDto.originLink,
             destinationLink: _serviceRequestInfoDto.destinationLink,
-            cargoInsurableValue: _serviceRequestInfoDto.cargoInsurableValue,
+            cargoInsurableValue: _serviceRequestInfoDto.cargoInsurableValue * (10 ** 18),
             serviceFee: msg.value,
             serviceFeeByBidder: 0,
             requestedPickupTime: _serviceRequestInfoDto.requestedPickupTime,
@@ -206,12 +207,12 @@ contract ServiceRequest {
         }
 
         // Checking msg.value is equal to cargo insurable value
-        if(msg.value != serviceRequestInfo.cargoInsurableValue * (10 ** 18)) {
+        if(msg.value != serviceRequestInfo.cargoInsurableValue) {
             revert Errors.InvalidCargoInsuranceValue({ cargoInsuranceValue: msg.value, message: "Cargo insurable value should be equal to Product value"});
         }
 
         // Checking service fee with cargo insurable value
-        if(_serviceFee <= 0 || (_serviceFee + msg.value) >= (serviceRequestInfo.serviceFee + (serviceRequestInfo.cargoInsurableValue  * (10 ** 18)))) {
+        if(_serviceFee <= 0 || (_serviceFee + msg.value) >= (serviceRequestInfo.serviceFee + serviceRequestInfo.cargoInsurableValue)) {
             revert Errors.InvalidServiceFee({ serviceFee: _serviceFee, message: "Service Fee should be less than the service fee provide by shipper"});
         }
 
@@ -225,7 +226,8 @@ contract ServiceRequest {
         Types.DriverInfoDto memory driverInfoDto = Types.DriverInfoDto({
             serviceFee: _serviceFee,
             driverAddr: msg.sender,
-            isRefunded: false
+            cargoValueRefunded: false,
+            serviceFeeRefunded: false
         });
         peopleWhoAlreadyBidded[_serviceRequestId].push(driverInfoDto);
 
@@ -253,6 +255,10 @@ contract ServiceRequest {
         Types.ServiceRequestInfo memory serviceRequestInfo = serviceRequestResult.serviceRequest;
         uint256 index = serviceRequestResult.index;
 
+        if(serviceRequestInfo.status == Types.Status.CANCELLED) {
+            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Service request is already cancelled"});
+        }
+
         // Checking status of service request for Draft / Ready for Auction / In Auction
         if(serviceRequestInfo.status == Types.Status.DRAFT || serviceRequestInfo.status == Types.Status.READY_FOR_AUCTION) {
             
@@ -269,6 +275,7 @@ contract ServiceRequest {
 
             // Cancelling service request
             serviceRequestInfos[index].status = Types.Status.CANCELLED;
+            payable(serviceRequestInfo.shipperAddr).transfer(serviceRequestInfo.serviceFee);
             emit Events.ServiceRequestCancelled(_serviceRequestId, msg.sender);
         } else {
             revert Errors.ServiceRequestCannotBeCancelled({ serviceRequestId: _serviceRequestId, message: "Service request cannot be cancelled now"});
@@ -282,7 +289,7 @@ contract ServiceRequest {
         uint256 index = serviceRequestResult.index;
 
         if(serviceRequestInfo.status == Types.Status.CANCELLED) {
-            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Service request is already cancelled"});
+            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Service request is already cancelled, cannot decide winner"});
         }
         
         if(block.timestamp <= serviceRequestInfo.auctionTime) {
@@ -293,36 +300,15 @@ contract ServiceRequest {
             serviceRequestInfos[index].auctionTime = block.timestamp + 5 minutes;
 
             emit Events.IncreasedAuctionTimeForSR(_serviceRequestId, "Increased auction time for service request by 5 minutes");
-        } else if(serviceRequestInfo.driverAssigned == msg.sender) {
-            serviceRequestInfos[index].status = Types.Status.DRIVER_ASSIGNED;
-
-            emit Events.AuctionResult(_serviceRequestId, "You have won the auction");
         } else {
-            // Check this driver bidded for this service request and return him his cargoinsurancevalue
-            refundCargoValue(_serviceRequestId, msg.sender);
-        }
-    }
-
-    // Refund Cargo value i.e Product value
-    function refundCargoValue(string memory _serviceRequestId, address _addr) internal {
-        Types.DriverInfoDto[] memory driverInfos = peopleWhoAlreadyBidded[_serviceRequestId];
-
-        for(uint256 i=0; i<driverInfos.length; i++) {
-            if(driverInfos[i].driverAddr == _addr) {
-                if(!driverInfos[i].isRefunded) {
-                    emit Events.AuctionResult(_serviceRequestId, "You lost the auction!!");
-                    peopleWhoAlreadyBidded[_serviceRequestId][i].isRefunded = true;
-                    payable(_addr).transfer(driverInfos[i].serviceFee);
-
-                    emit Events.CargoValueRefunded(address(this), _addr, driverInfos[i].serviceFee);
-                } else {
-                    emit Events.AuctionResult(_serviceRequestId, "You are already refunded for this service request");
-                }
-                return;
+            serviceRequestInfos[index].status = Types.Status.DRIVER_ASSIGNED;
+            if(serviceRequestInfo.driverAssigned == msg.sender) {
+                emit Events.AuctionResult(_serviceRequestId, "You have won the auction");
+            } else {
+                // Check this driver bidded for this service request and return him his cargoinsurancevalue
+                refundCargoValueToDriver(_serviceRequestId, msg.sender);
             }
         }
-
-        revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "You have not bidded for this service request"});
     }
 
     // Status update of service request by shipper
@@ -411,13 +397,16 @@ contract ServiceRequest {
         if(_status == Types.Status.DELIVERED) {
             if(serviceRequestInfo.status != Types.Status.DRIVER_ARRIVED_AT_DESTINATION) {
                 revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Driver has not reached at destination yet, cannot update status to DELIVERED"});
-            } else if(acceptance == Types.Acceptance.CONDITIONAL) {
+            }
+            
+            if(acceptance == Types.Acceptance.CONDITIONAL) {
                 serviceRequestInfos[index].status = _status;
-                refundCargoValue(_serviceRequestId, serviceRequestInfo.driverAssigned);
+                refundCargoValueToDriver(_serviceRequestId, serviceRequestInfo.driverAssigned);
                 refundServiceFeeToShipperAndDriver(serviceRequestInfo);
                 geekToken.transferTokens(serviceRequestInfo.driverAssigned, serviceRequestInfo.cargoInsurableValue, Types.Acceptance.CONDITIONAL);
             } else {
                 serviceRequestInfos[index].status = Types.Status.DISPUTE;
+                serviceRequestInfo.status = Types.Status.DISPUTE;
 
                 // send service request to dispute contract
                 disputedServiceRequest.saveDisputedServiceRequest(address(this), serviceRequestInfo);
@@ -427,6 +416,34 @@ contract ServiceRequest {
             emit Events.UpdatedSRStatus(_serviceRequestId, "Updated service request successfully");
         } else {
             revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Receiver can only update status : DELIVERED"});
+        }
+    }
+
+    // Refund Cargo value i.e Product value
+    function refundCargoValueToDriver(string memory _serviceRequestId, address _addr) internal {
+        Types.DriverInfoDto[] memory driverInfos = peopleWhoAlreadyBidded[_serviceRequestId];
+
+        for(uint256 i=0; i<driverInfos.length; i++) {
+            if(driverInfos[i].driverAddr == _addr) {
+                if(!driverInfos[i].cargoValueRefunded) {
+                    emit Events.AuctionResult(_serviceRequestId, "You lost the auction!!");
+                    peopleWhoAlreadyBidded[_serviceRequestId][i].cargoValueRefunded = true;
+                    payable(_addr).transfer(driverInfos[i].serviceFee);
+
+                    emit Events.CargoValueRefunded(address(this), _addr, driverInfos[i].serviceFee);
+                } else {
+                    emit Events.AuctionResult(_serviceRequestId, "You are already refunded for this service request");
+                }
+                return;
+            }
+        }
+
+        revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "You have not bidded for this service request"});
+    }
+
+    function refundCargoValueToReceiver(address _receiverAddr, uint256 _cargoValue) internal {
+        if(address(this).balance >= _cargoValue) {
+            payable(_receiverAddr).transfer(_cargoValue);
         }
     } 
 
@@ -512,24 +529,37 @@ contract ServiceRequest {
     }
 
     function decideWinnerForDispute(string memory _serviceRequestId) external returns (Types.ServiceRequestInfo memory) {
-        Types.ServiceRequestInfo memory serviceRequestInfo = disputedServiceRequest.decideWinner(_serviceRequestId);
-
-        if(serviceRequestInfo.status != Types.Status.DISPUTE_RESOLVED) {
-            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Voting on dispute service request is still in progress"});
-        }
-
         Types.ServiceRequestResult memory serviceRequestResult = getServiceRequestById(_serviceRequestId);
         Types.ServiceRequestInfo memory request = serviceRequestResult.serviceRequest;
         uint256 index = serviceRequestResult.index;
 
         address _addr = msg.sender;
+
         if(_addr == request.shipperAddr || _addr == request.receiverAddr || _addr == request.driverAssigned) {
             revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Only shipper, receiver or driver of this service request can decide winner for dispute request"});
+        }
+
+        Types.ServiceRequestInfo memory serviceRequestInfo = disputedServiceRequest.decideWinner(_serviceRequestId);
+
+        if(serviceRequestInfo.status == Types.Status.DISPUTE_RESOLVED) {
+            revert Errors.SRDisputeAlreadyResolved({ serviceRequestId: _serviceRequestId, message: "Voting on dispute service request is still in progress"});
         }
 
         serviceRequestInfos[index].status = serviceRequestInfo.status;
         serviceRequestInfos[index].disputeWinner = serviceRequestInfo.disputeWinner;
 
-        return request;
+        if(Helpers.compareStrings(serviceRequestInfo.disputeWinner, "DRIVER")) {
+            refundCargoValueToDriver(serviceRequestInfo.serviceRequestId, serviceRequestInfo.driverAssigned);
+            refundServiceFeeToShipperAndDriver(serviceRequestInfo);
+
+            emit Events.DisputedSRWinner(_serviceRequestId, "Driver has won");
+        } else if(Helpers.compareStrings(serviceRequestInfo.disputeWinner, "RECEIVER")) {
+            refundCargoValueToReceiver(serviceRequestInfo.receiverAddr, serviceRequestInfo.cargoInsurableValue);
+            refundServiceFeeToShipperAndDriver(serviceRequestInfo);
+
+            emit Events.DisputedSRWinner(_serviceRequestId, "Receiver has won");
+        } else {
+            emit Events.DisputedSRWinner(_serviceRequestId, "Draw, Shipper has special access to vote for breaking the tie");
+        }
     } 
 }

@@ -7,14 +7,28 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./Types.sol";
 import "./Events.sol";
+import "./Errors.sol";
 
 contract GeekToken is ERC20, ERC20Burnable, ERC20Pausable, Ownable {
     uint256 internal maxSupply = 10000000 * (10 ** decimals());     // 1 crore = 10 million
+    address serviceRequestAddr = address(0);
+
     constructor(address initialOwner)
         ERC20("GeekToken", "GTK")
         Ownable(initialOwner)
     {
         _mint(msg.sender, 2500000 * 10 ** decimals());  // 25 lakh = 2.5 million
+    }
+
+    modifier isServiceRequestContract(address _addr) {
+        if(serviceRequestAddr != _addr) {
+            revert Errors.AccessDenied({ from: _addr, message: "You are not allowed to call this method"});
+        }
+        _;
+    }
+
+    function updateServiceRequestAddr(address _addr) external onlyOwner {
+        serviceRequestAddr = _addr;
     }
 
     function pause() public onlyOwner {
@@ -64,9 +78,15 @@ contract GeekToken is ERC20, ERC20Burnable, ERC20Pausable, Ownable {
         return _reward;
     }
 
-    function transferTokens(address to, uint256 cargoInsurableValue, Types.Acceptance acceptance) external {
+    function transferTokens(address to, uint256 cargoInsurableValue, Types.Acceptance acceptance) isServiceRequestContract(msg.sender) external {
         uint256 tokensToReward = tokenReward(cargoInsurableValue, acceptance);
-        _transfer(owner(), to, tokensToReward);
+
+        address ownerAddr = owner();
+
+        if(balanceOf(ownerAddr) >= tokensToReward)
+            _transfer(owner(), to, tokensToReward);
+        else
+            revert Errors.NotSufficientFunds({ account: ownerAddr, message: "Not sufficient funds"});
 
         emit Events.TransferedTokens(address(this), to, tokensToReward);
     }

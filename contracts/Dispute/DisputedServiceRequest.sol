@@ -49,13 +49,10 @@ contract DisputedServiceRequest is Ownable {
 
     function saveDisputedServiceRequest(address from, Types.ServiceRequestInfo memory serviceRequestInfo) isServiceRequestContract(msg.sender) external {
         if(serviceRequestInfo.status != Types.Status.DISPUTE) {
-            emit Events.OnlyDisputedSRCanBeSaved(from, serviceRequestInfo);
-            return;
+            revert Errors.OnlyDisputedSRCanBeSaved(from, serviceRequestInfo);
         }
-
-        console.log("Save dispute service request");
+        
         serviceRequestInfos.push(serviceRequestInfo);
-        console.log("Save dispute service request2");
         Types.VoteCount memory voteCount = Types.VoteCount({
             driverVote: 0,
             receiverVote: 0,
@@ -122,6 +119,11 @@ contract DisputedServiceRequest is Ownable {
         Types.ServiceRequestInfo memory serviceRequestInfo = serviceRequestResult.serviceRequest;
         uint256 index = serviceRequestResult.index;
 
+        //Deciding the winner
+        if(serviceRequestInfo.status == Types.Status.DISPUTE_RESOLVED) {
+            return serviceRequestInfo;
+        }
+
         Types.VoteCount memory voteCount = voteCounts[_serviceRequestId];
 
         //Checking voting has ended or not
@@ -129,14 +131,9 @@ contract DisputedServiceRequest is Ownable {
             revert Errors.VotingInProgress({ from: msg.sender, serviceRequestId: _serviceRequestId, message: "Voting is still in progress" });
         }
 
-        //Deciding the winner
-        if(serviceRequestInfo.status == Types.Status.DISPUTE_RESOLVED) {
-            emit Events.VotingMessage(_serviceRequestId, serviceRequestInfo.disputeWinner);
-        }
-
-        else if(voteCount.driverVote > voteCount.receiverVote) {
+        if(voteCount.driverVote > voteCount.receiverVote) {
             serviceRequestInfos[index].status = Types.Status.DISPUTE_RESOLVED;
-            serviceRequestInfos[index].disputeWinner = "Hurray! Driver Wins";
+            serviceRequestInfos[index].disputeWinner = "DRIVER";
 
             emit Events.VotingMessage(_serviceRequestId, "Hurray! Driver Wins");
         }
@@ -144,18 +141,18 @@ contract DisputedServiceRequest is Ownable {
             // call the function of user contract to deduct stars
             userRoleRequest.deductStars(serviceRequestInfo.driverAssigned);        
             serviceRequestInfos[index].status = Types.Status.DISPUTE_RESOLVED;
-            serviceRequestInfos[index].disputeWinner = "Hurray! Receiver Wins";
+            serviceRequestInfos[index].disputeWinner = "RECEIVER";
 
             emit Events.VotingMessage(_serviceRequestId, "Hurray! Receiver Wins");
         } else {
-            serviceRequestInfos[index].disputeWinner = "Draw, shipper needs to vote";
+            serviceRequestInfos[index].disputeWinner = "DRAW";
             emit Events.VotingMessage(_serviceRequestId, "Draw, shipper needs to vote");
         }
 
         return serviceRequestInfo;
     }
 
-    function getDisputedServiceRequestByIdWithIndex(string memory _serviceRequestId) internal view returns (Types.ServiceRequestResult memory) {
+    function getDisputedServiceRequestByIdWithIndex(string memory _serviceRequestId) public view returns (Types.ServiceRequestResult memory) {
         Types.ServiceRequestResult memory serviceRequestResult;
 
         for(uint256 i=0; i<serviceRequestInfos.length; i++) {
