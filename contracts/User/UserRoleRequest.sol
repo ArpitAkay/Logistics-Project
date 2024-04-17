@@ -297,8 +297,8 @@ contract UserRoleRequest is Ownable{
     }
 
     function isUserRegistered(address _userAddr) external view {
-        if(bytes(users[_userAddr].userName).length > 0) {
-            revert Errors.UserNotRegistered(_userAddr, "User does not exists");
+        if(bytes(users[_userAddr].userName).length == 0) {
+            revert Errors.UserNotRegistered({userAddress : _userAddr, errMsg :"User not registered"});
         }
     }
 
@@ -307,6 +307,9 @@ contract UserRoleRequest is Ownable{
     }
 
     function hasRoleShipperAndReceiver(address _shipper, address _receiver) external  view {
+        if(_shipper == _receiver) {
+            revert Errors.InvalidInput({userAddress : _receiver, errMsg :"Shipper and receiver cannot be same address"});
+        }
         Types.Role[] memory receiverRoles = users[_receiver].role;
 
         bool isShipper = false;
