@@ -9,4 +9,5 @@ interface IUserRoleRequest {
     
     function getUserGeoHash(address _addr) external view returns (string memory);
     function isUserRegistered(address _userAddr) external view returns(bool);
+    function isAdmin(address _addr) view external returns (bool);
 }

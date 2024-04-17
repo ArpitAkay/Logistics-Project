@@ -297,7 +297,7 @@ contract UserRoleRequest is Ownable{
     }
 
     function isUserRegistered(address _userAddr) external view {
-        if(bytes(users[_userAddr].userName).length == 0) {
+        if(users[_userAddr].userAddress == address(0)) {
             revert Errors.UserNotRegistered({userAddress : _userAddr, errMsg :"User not registered"});
         }
     }
@@ -310,32 +310,33 @@ contract UserRoleRequest is Ownable{
         if(_shipper == _receiver) {
             revert Errors.InvalidInput({userAddress : _receiver, errMsg :"Shipper and receiver cannot be same address"});
         }
+
         Types.Role[] memory receiverRoles = users[_receiver].role;
 
         bool isShipper = false;
         bool isReceiver = false;
 
         for(uint i = 0; i<receiverRoles.length; i++) {
-            if(receiverRoles[i] == Types.Role.Receiver || receiverRoles[i] == Types.Role.Admin) {
+            if(receiverRoles[i] == Types.Role.Receiver) {
                 isReceiver = true;
                 break;
             }
         }
 
         if(!isReceiver) {
-            revert Errors.NotAuthorized({userAddress : _receiver, errMsg :"Receiver address provided doesn't have receiver or admin role"});
+            revert Errors.NotAuthorized({userAddress : _receiver, errMsg :"Receiver address provided doesn't have receiver role"});
         }
 
         Types.Role[] memory shipperRoles = users[_shipper].role;
         for(uint i = 0; i<shipperRoles.length; i++) {
-            if(shipperRoles[i] == Types.Role.Shipper || shipperRoles[i] == Types.Role.Admin) {
+            if(shipperRoles[i] == Types.Role.Shipper) {
                 isShipper = true;
                 break;
             }
         }
 
         if(!isShipper) {
-            revert Errors.NotAuthorized({userAddress : _shipper, errMsg :"Shipper address provided doesn't have shipper or admin role"});
+            revert Errors.NotAuthorized({userAddress : _shipper, errMsg :"Shipper address provided doesn't have shipper role"});
         }
     }
 
@@ -362,14 +363,14 @@ contract UserRoleRequest is Ownable{
         bool isDriver = false;
 
         for(uint i=0; i<userRoles.length; i++) {
-            if(userRoles[i] == Types.Role.Driver || userRoles[i] == Types.Role.Admin) {
+            if(userRoles[i] == Types.Role.Driver) {
                 isDriver = true;
                 break;
             }
         }
 
         if(!isDriver) {
-            revert Errors.NotAuthorized({userAddress : _addr, errMsg :"User address provided doesn't have Driver or admin role"});
+            revert Errors.NotAuthorized({userAddress : _addr, errMsg :"User address provided doesn't have Driver role"});
         }
     }
 
@@ -444,5 +445,15 @@ contract UserRoleRequest is Ownable{
         }
     }
 
-    
+    function isAdmin(address _addr) view external returns (bool) {
+        Types.Role[] memory userRoles = users[_addr].role;
+
+        for(uint i=0; i<userRoles.length; i++) {
+            if(userRoles[i] == Types.Role.Admin) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
