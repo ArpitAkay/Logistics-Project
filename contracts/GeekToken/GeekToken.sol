@@ -79,7 +79,7 @@ contract GeekToken is ERC20, ERC20Burnable, ERC20Pausable, Ownable {
     }
 
     function transferTokens(address to, uint256 cargoInsurableValue, Types.Acceptance acceptance) isServiceRequestContract(msg.sender) external {
-        uint256 tokensToReward = tokenReward(cargoInsurableValue, acceptance);
+        uint256 tokensToReward = tokenReward(cargoInsurableValue / (10 ** 18), acceptance);
 
         address ownerAddr = owner();
 

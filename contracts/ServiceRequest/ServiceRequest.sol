@@ -185,7 +185,7 @@ contract ServiceRequest {
 
         // Checking bidding start time i.e auctionStartTime started or not
         if(serviceRequestInfo.status != Types.Status.READY_FOR_AUCTION) {
-            revert Errors.AuctionNotStarted({ serviceRequestId: _serviceRequestId, message: "Service request is not ready for auction yet"});
+            revert Errors.AuctionNotStarted({ serviceRequestId: _serviceRequestId, message: "Service request is not in auction right now"});
         }
 
         // Checking auction has already ended or not
@@ -288,10 +288,6 @@ contract ServiceRequest {
         if(serviceRequestInfo.status == Types.Status.CANCELLED) {
             revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Service request is already cancelled, cannot decide winner"});
         }
-
-        if(msg.sender != serviceRequestInfo.shipperAddr && msg.sender != serviceRequestInfo.receiverAddr && msg.sender != serviceRequestInfo.driverAssigned) {
-            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Only shipper, receiver or driver of this service request can decide winner for this service request"});
-        }
         
         if(block.timestamp <= serviceRequestInfo.auctionTime) {
             revert Errors.AuctionInProgress({ serviceRequestId: _serviceRequestId, message: "Auction still inprogress"});
@@ -381,7 +377,7 @@ contract ServiceRequest {
                 revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "DRIVER_ARRIVED_AT_DESTINATION status can only be updated when service request is in OUT_FOR_DELIVERY status"});
             }
         } else {
-            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Driver can update only DRIVER_ARRIVED_AT_ORIGIN, PARCEL_PICKED_UP, OUT_FOR_DELIVERY, DRIVER_ARRIVED_AT_DESTINATION"});
+            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Driver can update status only when service request is in  DRIVER_ARRIVED_AT_ORIGIN, PARCEL_PICKED_UP, OUT_FOR_DELIVERY, DRIVER_ARRIVED_AT_DESTINATION"});
         }
     }
 

@@ -9,6 +9,6 @@ interface IUserRoleRequest {
     function hasNoneRole(address _addr) external view;
     
     function getUserGeoHash(address _addr) external view returns (string memory);
-    function isUserRegistered(address _userAddr) external view returns(bool);
+    function isUserRegistered(address _userAddr) external view;
     function deductStars(address _addr) external;
 }
