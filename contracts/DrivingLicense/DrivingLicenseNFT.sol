@@ -46,19 +46,29 @@ contract DrivingLicenseNFT is ERC721, ERC721Enumerable, ERC721Pausable, Ownable,
         maxSupply = _maxSupply;
     }
 
-    function publicMint(string memory _driverName, string memory _driverLicenseNumber, string memory ipfsHash) external payable {
-        require(publicMintOpen, "Public mint is closed");
-        require(msg.value == publicMintPrice, "Not enough funds");
+    function publicMint(string memory _driverName, string memory _driverLicenseNumber, string memory _ipfsHash) external payable {
+        if(!publicMintOpen) {
+            revert Errors.PublicMintError({ driverName: _driverName, driverLicenseNumber: _driverLicenseNumber, ipfsHash: _ipfsHash, message: "Public mint is closed"});
+        }
+
+        if(msg.value != publicMintPrice) {
+            revert Errors.PublicMintError({ driverName: _driverName, driverLicenseNumber: _driverLicenseNumber, ipfsHash: _ipfsHash, message: "Not enough funds provided"});
+        }
         uint256 tokenId = internalMint(msg.sender);
         string memory dlNumber = Helpers.formatDrivingLicenseNumber(_driverLicenseNumber);
-        drivingLicenseInfo[tokenId] = Types.DrivingLicenseInfo(_driverName, dlNumber, ipfsHash);
+        drivingLicenseInfo[tokenId] = Types.DrivingLicenseInfo(_driverName, dlNumber, _ipfsHash);
     }
 
-    function internalMint(address to) internal returns (uint256) {
-        require(balanceOf(to) == 0, "You have already minted driving NFT");
-        require(totalSupply() < maxSupply, "We sold out");
+    function internalMint(address _to) internal returns (uint256) {
+        if(balanceOf(_to) != 0) {
+            revert Errors.InternalMintError({ from: msg.sender, to: _to, message: "You have already minted driving NFT"});
+        }
+
+        if(totalSupply() >= maxSupply) {
+            revert Errors.InternalMintError({ from: msg.sender, to: _to, message: "We sold out"});
+        }
         uint256 tokenId = _nextTokenId++;
-        _safeMint(to, tokenId);
+        _safeMint(_to, tokenId);
         return tokenId;
     }
 
