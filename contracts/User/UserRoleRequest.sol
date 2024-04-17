@@ -16,6 +16,8 @@ contract UserRoleRequest is Ownable{
 
     Types.RoleRequest[] internal roleRequests;
     mapping(address => Types.User) public users;
+    
+    address disputeContractAddress = address(0);
 
     constructor(address initialOwner, address drivingLicenseNFTAddress) 
     Ownable(initialOwner) 
@@ -34,6 +36,10 @@ contract UserRoleRequest is Ownable{
         });
 
         users[initialOwner] = admin;
+    }
+
+    function setDisputeContractAddress(address _onlyDisputeContract) external onlyOwner {
+        disputeContractAddress = _onlyDisputeContract;
     }
 
     function generateRandomString(uint256 length) public view returns (string memory) {
@@ -398,7 +404,32 @@ contract UserRoleRequest is Ownable{
         }
     }
 
-    function deductStars(address _addr) external  {
+    modifier onlyDriver(address _addr) {
+        Types.Role[] memory userRoles = users[_addr].role;
+
+        bool isDriver = false;
+
+        for(uint i=0; i<userRoles.length; i++) {
+            if(userRoles[i] == Types.Role.Driver) {
+                isDriver = true;
+                break;
+            }
+        }
+
+        if(!isDriver) {
+            revert Errors.NotAuthorized({userAddress : _addr, errMsg :"User address provided doesn't have Driver or admin role"});
+        }
+        _;
+    }
+
+    modifier onlyDisputeContract() {
+        if(disputeContractAddress != msg.sender) {
+            revert Errors.NotAuthorized({userAddress : msg.sender, errMsg :"You are not authorized to call this method"});
+        }
+        _;
+    }
+
+    function deductStars(address _addr) external onlyDriver(_addr) onlyDisputeContract  {
         Types.User memory user = users[_addr];
         uint intStars = user.starsInInt;
         intStars -= 1;
