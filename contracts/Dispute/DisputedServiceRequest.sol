@@ -127,7 +127,7 @@ contract DisputedServiceRequest is Ownable {
         Types.VoteCount memory voteCount = voteCounts[_serviceRequestId];
 
         //Checking voting has ended or not
-        if(voteCount.totalVotesCounted < 5) {
+        if(voteCount.totalVotesCounted < 2) {
             revert Errors.VotingInProgress({ from: msg.sender, serviceRequestId: _serviceRequestId, message: "Voting is still in progress" });
         }
 

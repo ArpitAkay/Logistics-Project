@@ -306,7 +306,7 @@ contract UserRoleRequest is Ownable{
         return users[_addr].geoHash;
     }
 
-    function hasRoleShipperAndReceiver(address _shipper, address _receiver) external  view {
+    function hasRoleShipperOrAdminAndReceiver(address _shipper, address _receiver) external  view {
         if(_shipper == _receiver) {
             revert Errors.InvalidInput({userAddress : _receiver, errMsg :"Shipper and receiver cannot be same address"});
         }
@@ -329,7 +329,7 @@ contract UserRoleRequest is Ownable{
 
         Types.Role[] memory shipperRoles = users[_shipper].role;
         for(uint i = 0; i<shipperRoles.length; i++) {
-            if(shipperRoles[i] == Types.Role.Shipper) {
+            if(shipperRoles[i] == Types.Role.Shipper || shipperRoles[i] == Types.Role.Admin) {
                 isShipper = true;
                 break;
             }
@@ -340,7 +340,7 @@ contract UserRoleRequest is Ownable{
         }
     }
 
-    function hasRoleShipper(address _addr) external view {
+    function hasRoleShipperOrAdmin(address _addr) external view {
         Types.Role[] memory userRoles = users[_addr].role;
 
         bool isShipper = false;

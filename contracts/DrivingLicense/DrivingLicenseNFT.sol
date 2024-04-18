@@ -47,6 +47,7 @@ contract DrivingLicenseNFT is ERC721, ERC721Enumerable, ERC721Pausable, Ownable,
     }
 
     function publicMint(string memory _driverName, string memory _driverLicenseNumber, string memory _ipfsHash) external payable {
+        checkValidations(_driverName, _driverLicenseNumber, _ipfsHash);
         if(!publicMintOpen) {
             revert Errors.PublicMintError({ driverName: _driverName, driverLicenseNumber: _driverLicenseNumber, ipfsHash: _ipfsHash, message: "Public mint is closed"});
         }
@@ -70,6 +71,20 @@ contract DrivingLicenseNFT is ERC721, ERC721Enumerable, ERC721Pausable, Ownable,
         uint256 tokenId = _nextTokenId++;
         _safeMint(_to, tokenId);
         return tokenId;
+    }
+
+    function checkValidations(string memory _driverName, string memory _driverLicenseNumber, string memory _ipfsHash) internal pure {
+        if(bytes(_driverName).length == 0) {
+            revert Errors.InvalidInput({ name: "DriverName", value: _driverName, message: "Driver name cannot be empty"});
+        }
+
+        if(bytes(_driverLicenseNumber).length == 0) {
+            revert Errors.InvalidInput({ name: "Driver License", value: _driverLicenseNumber, message: "Driver license number cannot be empty"});
+        }
+
+        if(bytes(_ipfsHash).length == 0) {
+            revert Errors.InvalidInput({ name: "Ipfs hash", value: _driverLicenseNumber, message: "Driver license number cannot be empty"});
+        }
     }
 
     function burn(uint256 _tokenId) public override  {

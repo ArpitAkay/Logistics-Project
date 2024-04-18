@@ -19,7 +19,6 @@ library Types {
         string destinationLink;
         uint256 cargoInsurableValue;    // Product Value
         uint256 serviceFee;
-        uint256 serviceFeeByBidder;
         uint256 requestedPickupTime;     // In timestamp
         uint256 requestedDeliveryTime;  // In timestamp
         uint256 auctionTime;
@@ -54,8 +53,9 @@ library Types {
     }
 
     struct DriverInfoDto {
+        address driverAddress;
         uint256 serviceFee;
-        address driverAddr;
+        uint256 cargoInsuranceValue;
         bool cargoValueRefunded;
         bool serviceFeeRefunded;
     }
