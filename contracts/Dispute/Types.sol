@@ -19,7 +19,6 @@ library Types {
         string destinationLink;
         uint256 cargoInsurableValue;    // Product Value
         uint256 serviceFee;
-        uint256 serviceFeeByBidder;
         uint256 requestedPickupTime;     // In timestamp
         uint256 requestedDeliveryTime;  // In timestamp
         uint256 auctionTime;

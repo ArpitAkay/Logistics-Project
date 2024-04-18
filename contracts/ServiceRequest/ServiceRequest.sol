@@ -157,7 +157,7 @@ contract ServiceRequest {
             revert Errors.InvalidTimmings({ timestamp: _reqestedPickupTime, message: "Request pickup time must be in the future"});
         }
 
-        if(_reqestedPickupTime <= block.timestamp + 1 hours) {
+        if(_reqestedPickupTime < block.timestamp + 1 hours) {
             revert Errors.InvalidTimmings({ timestamp: _reqestedPickupTime, message: "Request pickup time must be after 1 hour from current time"});
         }
 
@@ -175,7 +175,7 @@ contract ServiceRequest {
             revert Errors.InvalidTimmings({ timestamp: _requestedDeliveryTime, message: "Requested delivery time must be after requested pickup time"});
         }
 
-        if((_requestedDeliveryTime - _reqestedPickupTime) <= 1 hours) {
+        if((_requestedDeliveryTime - _reqestedPickupTime) < 1 hours) {
             revert Errors.InvalidTimmings({ timestamp: _requestedDeliveryTime, message :"Requested pickup time and requested delivery time must be 1 hour apart"});
         }
     }
@@ -340,7 +340,8 @@ contract ServiceRequest {
 
             refundCargoValueToDriversExceptWinner(_serviceRequestId, driverWinnerInfo.driverAddress);
 
-            emit Events.AuctionResult(_serviceRequestId, msg.sender, string(abi.encodePacked(abi.encodePacked(driverWinnerInfo.driverAddress), " ", "You have won the auction")));
+            // check the event
+            emit Events.AuctionResult(_serviceRequestId, driverWinnerInfo.driverAddress, "Driver is assigned to the service request");
         }
     }
 
@@ -385,19 +386,19 @@ contract ServiceRequest {
         Types.ServiceRequestInfo memory serviceRequestInfo = serviceRequestResult.serviceRequest;
         uint256 index = serviceRequestResult.index;
 
-        if(serviceRequestInfo.status == Types.Status.CANCELLED) {
-            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Service request is already cancelled"});
-        } 
-
         if(msg.sender != serviceRequestInfo.shipperAddr) {
             revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Only shipper can update the status"});
         }
+
+        if(serviceRequestInfo.status == Types.Status.CANCELLED) {
+            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Service request is already cancelled"});
+        } 
         
         if(_status == Types.Status.READY_FOR_PICKUP && serviceRequestInfo.status == Types.Status.DRIVER_ASSIGNED) {
             serviceRequestInfos[index].status = _status;
             emit Events.UpdatedSRStatus(_serviceRequestId, msg.sender, "Updated service request successfully to READY_FOR_PICKUP");
         } else {
-            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "The status you sent cannot be updated at this point"});
+            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Shipper can only update status : READY_FOR_PICKUP"});
         }
     }
 
@@ -407,15 +408,15 @@ contract ServiceRequest {
         Types.ServiceRequestInfo memory serviceRequestInfo = serviceRequestResult.serviceRequest;
         uint256 index = serviceRequestResult.index;
 
-        if(serviceRequestInfo.status == Types.Status.CANCELLED) {
-            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Service request is already cancelled"});
-        }
-
         if(msg.sender != serviceRequestInfo.driverAssigned) {
             revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Only assigned driver can update the status"});
         }
 
-        if(_status == Types.Status.DRIVER_ARRIVED_AT_ORIGIN || _status == Types.Status.PARCEL_PICKED_UP || _status == Types.Status.OUT_FOR_DELIVERY || _status == Types.Status.DRIVER_ARRIVED_AT_DESTINATION) {
+        if(serviceRequestInfo.status == Types.Status.CANCELLED) {
+            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Service request is already cancelled"});
+        }
+
+        if(_status == Types.Status.DRIVER_ARRIVED_AT_ORIGIN || _status == Types.Status.PARCEL_PICKED_UP || _status == Types.Status.PARCEL_PICKED_UP || _status == Types.Status.DRIVER_ARRIVED_AT_DESTINATION) {
             if(serviceRequestInfo.status == Types.Status.READY_FOR_PICKUP) {
                 if(_status == Types.Status.DRIVER_ARRIVED_AT_ORIGIN) {
                     serviceRequestInfos[index].status = _status;
@@ -448,7 +449,7 @@ contract ServiceRequest {
                 revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "The status you sent cannot be updated at this point"});
             }
         } else {
-            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "You don't have the access to the update the status"});
+            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Driver can only update status : DRIVER_ARRIVED_AT_ORIGIN, PARCEL_PICKED_UP, PARCEL_PICKED_UP, DRIVER_ARRIVED_AT_DESTINATION"});
         }
     }
 
@@ -458,17 +459,13 @@ contract ServiceRequest {
         Types.ServiceRequestInfo memory serviceRequestInfo = serviceRequestResult.serviceRequest;
         uint256 index = serviceRequestResult.index;
 
-        if(serviceRequestInfo.status == Types.Status.DISPUTE) {
-            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Service request is in dispute state"});
+        if(msg.sender != serviceRequestInfo.receiverAddr) {
+            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Only receiver can update the status"});
         }
 
         if(serviceRequestInfo.status == Types.Status.CANCELLED) {
             revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Service request is already cancelled"});
         }
-
-        if(msg.sender != serviceRequestInfo.receiverAddr) {
-            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Only receiver can update the status"});
-        }  
         
         if(_status == Types.Status.DELIVERED) {
             if(serviceRequestInfo.status != Types.Status.DRIVER_ARRIVED_AT_DESTINATION) {

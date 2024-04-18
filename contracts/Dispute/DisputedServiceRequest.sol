@@ -46,7 +46,7 @@ contract DisputedServiceRequest is Ownable {
     function updateServiceRequestAddr(address _addr) external onlyOwner {
         serviceRequestAddr = _addr;
     } 
-
+            
     function saveDisputedServiceRequest(address from, Types.ServiceRequestInfo memory serviceRequestInfo) isServiceRequestContract(msg.sender) external {
         if(serviceRequestInfo.status != Types.Status.DISPUTE) {
             revert Errors.OnlyDisputedSRCanBeSaved(from, serviceRequestInfo);
