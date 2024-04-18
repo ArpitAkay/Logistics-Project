@@ -85,7 +85,7 @@ contract DisputedServiceRequest is Ownable {
 
         Types.VoteCount memory voteCount = voteCounts[_serviceRequestId];
 
-        if(voteCount.totalVotesCounted >= 5) {
+        if(voteCount.totalVotesCounted >= 2) {
             if(voteCount.driverVote == voteCount.receiverVote && serviceRequestInfo.shipperAddr == msg.sender) {
                 increaseVote(_serviceRequestId, whomToVote);
                 peopleWhoAlreadyVoted[_serviceRequestId].push(msg.sender);
