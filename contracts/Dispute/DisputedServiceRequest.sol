@@ -163,7 +163,7 @@ contract DisputedServiceRequest is Ownable {
             }
         }
 
-        revert Errors.ServiceRequestDoesNotExists({ serviceRequestId: _serviceRequestId, message: "Service request does not exists"});
+        revert Errors.ServiceRequestDoesNotExists({ serviceRequestId: _serviceRequestId, message: "Disputed service request does not exists"});
     }
 
     function getAllDisputedServiceRequestInDriverArea() hasRoleDriver(msg.sender) external view returns (Types.ServiceRequestInfo[] memory) {

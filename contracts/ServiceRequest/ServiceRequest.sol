@@ -385,7 +385,7 @@ contract ServiceRequest {
             serviceRequestInfos[index].status = _status;
             emit Events.UpdatedSRStatus(_serviceRequestId, msg.sender, "Updated service request successfully to READY_FOR_PICKUP");
         } else {
-            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "READY_FOR_PICKUP Can only be updated once driver is assigned"});
+            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "The status you sent cannot be updated at this point"});
         }
     }
 
@@ -401,38 +401,42 @@ contract ServiceRequest {
 
         if(msg.sender != serviceRequestInfo.driverAssigned) {
             revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Only assigned driver can update the status"});
-        } 
+        }
 
-        if(serviceRequestInfo.status == Types.Status.READY_FOR_PICKUP) {
-            if(_status == Types.Status.DRIVER_ARRIVED_AT_ORIGIN) {
-                serviceRequestInfos[index].status = _status;
-                emit Events.UpdatedSRStatus(_serviceRequestId, msg.sender, "Updated service request successfully to DRIVER_ARRIVED_AT_ORIGIN");
+        if(_status == Types.Status.DRIVER_ARRIVED_AT_ORIGIN || _status == Types.Status.PARCEL_PICKED_UP || _status == Types.Status.OUT_FOR_DELIVERY || _status == Types.Status.DRIVER_ARRIVED_AT_DESTINATION) {
+            if(serviceRequestInfo.status == Types.Status.READY_FOR_PICKUP) {
+                if(_status == Types.Status.DRIVER_ARRIVED_AT_ORIGIN) {
+                    serviceRequestInfos[index].status = _status;
+                    emit Events.UpdatedSRStatus(_serviceRequestId, msg.sender, "Updated service request successfully to DRIVER_ARRIVED_AT_ORIGIN");
+                } else {
+                    revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "The status you sent cannot be updated at this point"});
+                }
+            } else if(serviceRequestInfo.status == Types.Status.DRIVER_ARRIVED_AT_ORIGIN) {
+                if(_status == Types.Status.PARCEL_PICKED_UP) {
+                    serviceRequestInfos[index].status = _status;
+                    emit Events.UpdatedSRStatus(_serviceRequestId, msg.sender, "Updated service request successfully to PARCEL_PICKED_UP");
+                } else {
+                    revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "The status you sent cannot be updated at this point"});
+                }
+            } else if(serviceRequestInfo.status == Types.Status.PARCEL_PICKED_UP) {
+                if(_status == Types.Status.OUT_FOR_DELIVERY) {
+                    serviceRequestInfos[index].status = _status;
+                    emit Events.UpdatedSRStatus(_serviceRequestId, msg.sender, "Updated service request successfully to OUT_FOR_DELIVERY");
+                } else {
+                    revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "The status you sent cannot be updated at this point"});
+                }
+            } else if(serviceRequestInfo.status == Types.Status.OUT_FOR_DELIVERY) {
+                if(_status == Types.Status.DRIVER_ARRIVED_AT_DESTINATION) {
+                    serviceRequestInfos[index].status = _status;
+                    emit Events.UpdatedSRStatus(_serviceRequestId, msg.sender, "Updated service request successfully to DRIVER_ARRIVED_AT_DESTINATION");
+                } else {
+                    revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "The status you sent cannot be updated at this point"});
+                }
             } else {
-                revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "DRIVER_ARRIVED_AT_ORIGIN status can only be updated when service request is in READY_FOR_PICKUP status"});
-            }
-        } else if(serviceRequestInfo.status == Types.Status.DRIVER_ARRIVED_AT_ORIGIN) {
-            if(_status == Types.Status.PARCEL_PICKED_UP) {
-                serviceRequestInfos[index].status = _status;
-                emit Events.UpdatedSRStatus(_serviceRequestId, msg.sender, "Updated service request successfully to PARCEL_PICKED_UP");
-            } else {
-                revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "PARCEL_PICKED_UP status can only be updated when service request is in DRIVER_ARRIVED_AT_ORIGIN status"});
-            }
-        } else if(serviceRequestInfo.status == Types.Status.PARCEL_PICKED_UP) {
-            if(_status == Types.Status.OUT_FOR_DELIVERY) {
-                serviceRequestInfos[index].status = _status;
-                emit Events.UpdatedSRStatus(_serviceRequestId, msg.sender, "Updated service request successfully to OUT_FOR_DELIVERY");
-            } else {
-                revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "OUT_FOR_DELIVERY status can only be updated when service request is in PARCEL_PICKED_UP status"});
-            }
-        } else if(serviceRequestInfo.status == Types.Status.OUT_FOR_DELIVERY) {
-            if(_status == Types.Status.DRIVER_ARRIVED_AT_DESTINATION) {
-                serviceRequestInfos[index].status = _status;
-                emit Events.UpdatedSRStatus(_serviceRequestId, msg.sender, "Updated service request successfully to DRIVER_ARRIVED_AT_DESTINATION");
-            } else {
-                revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "DRIVER_ARRIVED_AT_DESTINATION status can only be updated when service request is in OUT_FOR_DELIVERY status"});
+                revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "The status you sent cannot be updated at this point"});
             }
         } else {
-            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Driver can update status only when service request is in  DRIVER_ARRIVED_AT_ORIGIN, PARCEL_PICKED_UP, OUT_FOR_DELIVERY, DRIVER_ARRIVED_AT_DESTINATION"});
+            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "You don't have the access to the update the status"});
         }
     }
 
@@ -442,8 +446,8 @@ contract ServiceRequest {
         Types.ServiceRequestInfo memory serviceRequestInfo = serviceRequestResult.serviceRequest;
         uint256 index = serviceRequestResult.index;
 
-        if(serviceRequestInfo.status != Types.Status.DELIVERED) {
-            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Service request is already delivered"});
+        if(serviceRequestInfo.status == Types.Status.DISPUTE) {
+            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Service request is in dispute state"});
         }
 
         if(serviceRequestInfo.status == Types.Status.CANCELLED) {
@@ -538,7 +542,7 @@ contract ServiceRequest {
         Types.ServiceRequestInfo memory _serviceRequestInfo = _serviceRequestResult.serviceRequest;
 
         address _addr = msg.sender;
-        if(_addr == _serviceRequestInfo.shipperAddr || _addr == _serviceRequestInfo.receiverAddr || _addr == _serviceRequestInfo.driverAssigned) {
+        if(_addr == _serviceRequestInfo.shipperAddr || _addr == _serviceRequestInfo.receiverAddr || _addr == _serviceRequestInfo.driverAssigned || userRoleRequest.isAdmin(_addr)) {
             return _serviceRequestInfo;
         } 
         
@@ -617,4 +621,4 @@ contract ServiceRequest {
             emit Events.DisputedSRResult(_serviceRequestId, "Draw, Shipper has special access to vote for breaking the tie");
         }
     } 
-}
+}.
