@@ -398,7 +398,7 @@ contract ServiceRequest {
             serviceRequestInfos[index].status = _status;
             emit Events.UpdatedSRStatus(_serviceRequestId, msg.sender, "Updated service request successfully to READY_FOR_PICKUP");
         } else {
-            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Shipper can only update status : READY_FOR_PICKUP"});
+            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "The status you sent cannot be updated at this point"});
         }
     }
 
@@ -416,7 +416,7 @@ contract ServiceRequest {
             revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Service request is already cancelled"});
         }
 
-        if(_status == Types.Status.DRIVER_ARRIVED_AT_ORIGIN || _status == Types.Status.PARCEL_PICKED_UP || _status == Types.Status.PARCEL_PICKED_UP || _status == Types.Status.DRIVER_ARRIVED_AT_DESTINATION) {
+        if(_status == Types.Status.DRIVER_ARRIVED_AT_ORIGIN || _status == Types.Status.PARCEL_PICKED_UP || _status == Types.Status.OUT_FOR_DELIVERY || _status == Types.Status.DRIVER_ARRIVED_AT_DESTINATION) {
             if(serviceRequestInfo.status == Types.Status.READY_FOR_PICKUP) {
                 if(_status == Types.Status.DRIVER_ARRIVED_AT_ORIGIN) {
                     serviceRequestInfos[index].status = _status;
@@ -449,7 +449,7 @@ contract ServiceRequest {
                 revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "The status you sent cannot be updated at this point"});
             }
         } else {
-            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Driver can only update status : DRIVER_ARRIVED_AT_ORIGIN, PARCEL_PICKED_UP, PARCEL_PICKED_UP, DRIVER_ARRIVED_AT_DESTINATION"});
+            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "The status you sent cannot be updated at this point"});
         }
     }
 
@@ -490,7 +490,7 @@ contract ServiceRequest {
                 emit Events.UpdatedSRStatus(_serviceRequestId, msg.sender, "Updated service request successfully to DELIVERED-UNCONDITIONAL");
             }
         } else {
-            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Receiver can only update status : DELIVERED"});
+            revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "The status you sent cannot be updated at this point"});
         }
     }
 

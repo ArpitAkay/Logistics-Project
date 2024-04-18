@@ -83,10 +83,9 @@ contract GeekToken is ERC20, ERC20Burnable, ERC20Pausable, Ownable {
 
         address ownerAddr = owner();
 
-        if(balanceOf(ownerAddr) >= tokensToReward)
+        if(tokensToReward > 0 && balanceOf(ownerAddr) >= tokensToReward) {
             _transfer(owner(), to, tokensToReward);
-        else
-            revert Errors.NotSufficientFunds({ account: ownerAddr, message: "Not sufficient funds"});
+        }
 
         emit Events.TransferedTokens(address(this), to, tokensToReward);
     }
