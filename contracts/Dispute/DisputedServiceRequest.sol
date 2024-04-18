@@ -20,7 +20,6 @@ contract DisputedServiceRequest is Ownable {
 
     address serviceRequestAddr = address(0);
 
-
     constructor(address initialOwner, address _userRoleRequest) Ownable(initialOwner) {
         userRoleRequest = IUserRoleRequest(_userRoleRequest);
     }
@@ -64,13 +63,14 @@ contract DisputedServiceRequest is Ownable {
         emit Events.DisputedSRSaved(from, serviceRequestInfo.serviceRequestId, serviceRequestInfo);
     }
 
+    // change isValidUser to hasRoleShipperOrDriverOrReceiver
     function vote(string memory _serviceRequestId, Types.WhomToVote whomToVote) isValidUser(msg.sender) external {
         address[] memory addressesOfPeopleWhoAlreadyVoted = peopleWhoAlreadyVoted[_serviceRequestId];
  
         //Checking for people have already voted or not
         for(uint256 i=0; i<addressesOfPeopleWhoAlreadyVoted.length; i++) {
             if(addressesOfPeopleWhoAlreadyVoted[i] == msg.sender) {
-                revert Errors.AlreadyVoted({ serviceRequestId: _serviceRequestId,  message: "You have already voted for this service request"});
+                revert Errors.AlreadyVoted({ serviceRequestId: _serviceRequestId,  message: "You have already voted for this disputed service request"});
             }
         }
 
@@ -128,25 +128,19 @@ contract DisputedServiceRequest is Ownable {
 
         //Checking voting has ended or not
         if(voteCount.totalVotesCounted < 2) {
-            revert Errors.VotingInProgress({ from: msg.sender, serviceRequestId: _serviceRequestId, message: "Voting is still in progress" });
+            revert Errors.VotingInProgress({ from: msg.sender, serviceRequestId: _serviceRequestId, message: "Voting on this disputed service request is still in progress"});
         }
 
         if(voteCount.driverVote > voteCount.receiverVote) {
             serviceRequestInfos[index].status = Types.Status.DISPUTE_RESOLVED;
             serviceRequestInfos[index].disputeWinner = "DRIVER";
-
-            emit Events.VotingMessage(_serviceRequestId, "Hurray! Driver Wins");
         }
         else if(voteCount.driverVote < voteCount.receiverVote) {
-            // call the function of user contract to deduct stars
             userRoleRequest.deductStars(serviceRequestInfo.driverAssigned);        
             serviceRequestInfos[index].status = Types.Status.DISPUTE_RESOLVED;
             serviceRequestInfos[index].disputeWinner = "RECEIVER";
-
-            emit Events.VotingMessage(_serviceRequestId, "Hurray! Receiver Wins");
         } else {
             serviceRequestInfos[index].disputeWinner = "DRAW";
-            emit Events.VotingMessage(_serviceRequestId, "Draw, shipper needs to vote");
         }
 
         return serviceRequestInfo;

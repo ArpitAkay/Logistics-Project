@@ -115,6 +115,10 @@ contract DrivingLicenseNFT is ERC721, ERC721Enumerable, ERC721Pausable, Ownable,
     }
 
     function getDriverLicenseInfoByTokenId(uint256 _tokenId) public view returns (Types.DrivingLicenseInfo memory) {
+        if(ownerOf(_tokenId) != msg.sender) {
+            revert Errors.OwnerUnauthorized({tokenId : _tokenId, message: "You are not the owner of NFT"});
+        }
+        
         if(bytes(drivingLicenseInfo[_tokenId].driverLicenseNumber).length == 0) {
             revert Errors.DriverLicenseInfoNotFound({tokenId : _tokenId, message: "Driver License info not found"});
         }
