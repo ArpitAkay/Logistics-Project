@@ -157,6 +157,14 @@ contract ServiceRequest {
             revert Errors.InvalidTimmings({ timestamp: _reqestedPickupTime, message: "Request pickup time must be in the future"});
         }
 
+        if(_reqestedPickupTime <= block.timestamp + 1 hours) {
+            revert Errors.InvalidTimmings({ timestamp: _reqestedPickupTime, message: "Request pickup time must be after 1 hour from current time"});
+        }
+
+        if(block.timestamp + (_auctionStartTime * 1 minutes) >= _reqestedPickupTime) {
+            revert Errors.InvalidTimmings({ timestamp: _requestedDeliveryTime, message:"Requested pickup time must be later than the auction time"});
+        }
+
         // Checking requested delivery time is in the future
         if(_requestedDeliveryTime <= block.timestamp) {
             revert Errors.InvalidTimmings({ timestamp: _requestedDeliveryTime, message: "Request delivery time must be in the future"});
@@ -165,7 +173,11 @@ contract ServiceRequest {
         // Checking if requested delivery time is after requested pickup time
         if (_requestedDeliveryTime <= _reqestedPickupTime) {
             revert Errors.InvalidTimmings({ timestamp: _requestedDeliveryTime, message: "Requested delivery time must be after requested pickup time"});
-        }  
+        }
+
+        if((_requestedDeliveryTime - _reqestedPickupTime) <= 1 hours) {
+            revert Errors.InvalidTimmings({ timestamp: _requestedDeliveryTime, message :"Requested pickup time and requested delivery time must be 1 hour apart"});
+        }
     }
 
     // Function for updating drafted service request
@@ -190,6 +202,42 @@ contract ServiceRequest {
 
         emit Events.ServiceRequestUpdated(serviceRequestInfos[index], msg.sender, "Service request updated successfully to READY_FOR_AUCTION");
         
+    }
+
+    // Cancel service request
+    function cancelServiceRequest(string memory _serviceRequestId) external {
+        Types.ServiceRequestResult memory serviceRequestResult = getServiceRequestById(_serviceRequestId);
+        Types.ServiceRequestInfo memory serviceRequestInfo = serviceRequestResult.serviceRequest;
+        uint256 index = serviceRequestResult.index;
+
+        if(serviceRequestInfo.status == Types.Status.CANCELLED) {
+            revert Errors.ServiceRequestCannotBeCancelled({ serviceRequestId: _serviceRequestId, message: "Service request is already cancelled"});
+        }
+
+        // Checking status of service request for Draft / Ready for Auction / In Auction
+        if(serviceRequestInfo.status == Types.Status.DRAFT || serviceRequestInfo.status == Types.Status.READY_FOR_AUCTION) {
+            
+            // Only Shipper or Admin can cancel the service request 
+            if(!userRoleRequest.isAdmin(msg.sender)) {
+                if(msg.sender != serviceRequestInfo.shipperAddr) {
+                    revert Errors.ServiceRequestCannotBeCancelled({ serviceRequestId: _serviceRequestId, message: "Only shipper can cancelled the service request"});
+                }
+            }
+
+            if(serviceRequestInfo.driverAssigned != address(0)) {
+                if(block.timestamp >= serviceRequestInfo.auctionTime)
+                    serviceRequestInfos[index].status = Types.Status.DRIVER_ASSIGNED;
+                revert Errors.ServiceRequestCannotBeCancelled({ serviceRequestId: _serviceRequestId, message: "Service request cannot be cancelled, as driver is already assigned"});
+            }
+
+            // Cancelling service request
+            serviceRequestInfos[index].status = Types.Status.CANCELLED;
+            payable(serviceRequestInfo.shipperAddr).transfer(serviceRequestInfo.serviceFee);
+
+            emit Events.ServiceRequestCancelled(_serviceRequestId, msg.sender);
+        } else {
+            revert Errors.ServiceRequestCannotBeCancelled({ serviceRequestId: _serviceRequestId, message: "Service request cannot be cancelled as service request is not DRAFT OR READY_FOR_AUCTION status"});
+        }
     }
 
     // Function for bidding (Dutch bidding - One person can vote for only time)
@@ -255,42 +303,6 @@ contract ServiceRequest {
             if(_driverInfosWhoHasAlreadyBidded[i].driverAddress == _bidder) {
                 revert Errors.AlreadyBidded({ bidder: _bidder, message: "You have already bidded for this service request"});
             }
-        }
-    }
-
-    // Cancel service request
-    function cancelServiceRequest(string memory _serviceRequestId) external {
-        Types.ServiceRequestResult memory serviceRequestResult = getServiceRequestById(_serviceRequestId);
-        Types.ServiceRequestInfo memory serviceRequestInfo = serviceRequestResult.serviceRequest;
-        uint256 index = serviceRequestResult.index;
-
-        if(serviceRequestInfo.status == Types.Status.CANCELLED) {
-            revert Errors.ServiceRequestCannotBeCancelled({ serviceRequestId: _serviceRequestId, message: "Service request is already cancelled"});
-        }
-
-        // Checking status of service request for Draft / Ready for Auction / In Auction
-        if(serviceRequestInfo.status == Types.Status.DRAFT || serviceRequestInfo.status == Types.Status.READY_FOR_AUCTION) {
-            
-            // Only Shipper or Admin can cancel the service request 
-            if(!userRoleRequest.isAdmin(msg.sender)) {
-                if(msg.sender != serviceRequestInfo.shipperAddr) {
-                    revert Errors.ServiceRequestCannotBeCancelled({ serviceRequestId: _serviceRequestId, message: "Only shipper can cancelled the service request"});
-                }
-            }
-
-            if(serviceRequestInfo.driverAssigned != address(0)) {
-                if(block.timestamp >= serviceRequestInfo.auctionTime)
-                    serviceRequestInfos[index].status = Types.Status.DRIVER_ASSIGNED;
-                revert Errors.ServiceRequestCannotBeCancelled({ serviceRequestId: _serviceRequestId, message: "Service request cannot be cancelled, as driver is already assigned"});
-            }
-
-            // Cancelling service request
-            serviceRequestInfos[index].status = Types.Status.CANCELLED;
-            payable(serviceRequestInfo.shipperAddr).transfer(serviceRequestInfo.serviceFee);
-
-            emit Events.ServiceRequestCancelled(_serviceRequestId, msg.sender);
-        } else {
-            revert Errors.ServiceRequestCannotBeCancelled({ serviceRequestId: _serviceRequestId, message: "Service request cannot be cancelled as service request is not DRAFT OR READY_FOR_AUCTION status"});
         }
     }
 
@@ -596,13 +608,13 @@ contract ServiceRequest {
             revert Errors.SRDisputeAlreadyResolved({ serviceRequestId: _serviceRequestId, message: "Dispute on this service request is already resolved"});
         }
 
+        Types.ServiceRequestInfo memory serviceRequestInfo = disputedServiceRequest.decideWinner(_serviceRequestId);
+
         if(!userRoleRequest.isAdmin(msg.sender)) {
             if(msg.sender != request.shipperAddr && msg.sender != request.receiverAddr && msg.sender != request.driverAssigned) {
                 revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Only shipper, receiver or driver of this service request can decide winner for dispute request"});
             }
         }
-
-        Types.ServiceRequestInfo memory serviceRequestInfo = disputedServiceRequest.decideWinner(_serviceRequestId);
 
         serviceRequestInfos[index].status = serviceRequestInfo.status;
         serviceRequestInfos[index].disputeWinner = serviceRequestInfo.disputeWinner;
