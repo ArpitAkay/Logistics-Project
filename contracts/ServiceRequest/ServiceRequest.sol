@@ -197,7 +197,6 @@ contract ServiceRequest {
         // Getting ServiceRequestInfo and index of it by _serviceRequestId
         Types.ServiceRequestResult memory serviceRequestResult = getServiceRequestById(_serviceRequestId);
         Types.ServiceRequestInfo memory serviceRequestInfo = serviceRequestResult.serviceRequest;
-        uint256 index = serviceRequestResult.index;
 
         // Checking bidding start time i.e auctionStartTime started or not
         if(serviceRequestInfo.status != Types.Status.READY_FOR_AUCTION) {
@@ -349,10 +348,9 @@ contract ServiceRequest {
     }
 
     // check winner of auction by bidded drivers only
-    function checkWinner(string memory _serviceRequestId) external isValidUser(msg.sender) returns (Types.DriverInfoDto memory) {
+    function checkWinner(string memory _serviceRequestId) external view isValidUser(msg.sender) returns (Types.DriverInfoDto memory) {
         Types.ServiceRequestResult memory serviceRequestResult = getServiceRequestById(_serviceRequestId);
         Types.ServiceRequestInfo memory serviceRequestInfo = serviceRequestResult.serviceRequest;
-        uint256 index = serviceRequestResult.index;
 
         if(serviceRequestInfo.status == Types.Status.CANCELLED) {
             revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "Service request is already cancelled, cannot decide winner"});
@@ -485,8 +483,6 @@ contract ServiceRequest {
 
     // Refund cargo insurance value to winner driver
     function refundCargoValueToWinnerDriver(string memory _serviceRequestId) internal {
-        Types.DriverInfoDto[] memory driverInfos = peopleWhoAlreadyBidded[_serviceRequestId];
-
         Types.DriverInfoDto memory winnerDriverInfo = winnerInfo[_serviceRequestId];
 
         if(!winnerDriverInfo.cargoValueRefunded) {
@@ -495,8 +491,6 @@ contract ServiceRequest {
                 payable(winnerDriverInfo.driverAddress).transfer(winnerDriverInfo.cargoInsuranceValue);
             }
         }
-
-        revert Errors.AccessDenied({ serviceRequestId: _serviceRequestId, message: "You are already refunded for this service request"});
     }
 
     function refundAndGiveServiceFeeToShipperAndWinnerDriver(Types.ServiceRequestInfo memory serviceRequestInfo) internal {
