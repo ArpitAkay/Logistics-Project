@@ -143,7 +143,7 @@ contract DisputedServiceRequest is Ownable {
             serviceRequestInfos[index].disputeWinner = "DRAW";
         }
 
-        return serviceRequestInfo;
+        return serviceRequestInfos[index];
     }
 
     function getDisputedServiceRequestByIdWithIndex(string memory _serviceRequestId) internal view returns (Types.ServiceRequestResult memory) {
