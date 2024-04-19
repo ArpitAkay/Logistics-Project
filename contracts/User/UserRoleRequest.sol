@@ -170,7 +170,7 @@ contract UserRoleRequest is Ownable{
        
     }
 
-    function approveOrRejectRoleRequest(string memory _roleRequestId, bool approve) public {
+    function approveOrRejectRoleRequest(string memory _roleRequestId, bool approve) checkUserExists() public {
         Types.Role[] memory approverRoles = users[msg.sender].role;
 
         Types.RoleRequestWithIndexDto memory roleRequestWithIndex = getRoleRequestByIdWithIndex(_roleRequestId);
